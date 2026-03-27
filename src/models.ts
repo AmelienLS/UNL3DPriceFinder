@@ -100,14 +100,13 @@ export interface PriceResult {
 // --- Default data ---
 
 export const DEFAULT_MATERIALS: Material[] = [
-  { id: "1", name: "PLA Standard", brand: "Bambu Lab",  spoolPrice: 20, spoolWeight: 1, density: 1.24, nozzleTemp: 205, bedTemp: 60  },
-  { id: "2", name: "PLA+",         brand: "eSUN",       spoolPrice: 25, spoolWeight: 1, density: 1.24, nozzleTemp: 205, bedTemp: 60  },
-  { id: "3", name: "PETG",         brand: "Bambu Lab",  spoolPrice: 25, spoolWeight: 1, density: 1.27, nozzleTemp: 235, bedTemp: 75  },
-  { id: "4", name: "ABS",          brand: "Polymaker",  spoolPrice: 22, spoolWeight: 1, density: 1.04, nozzleTemp: 240, bedTemp: 100 },
-  { id: "5", name: "TPU",          brand: "Overture",   spoolPrice: 35, spoolWeight: 1, density: 1.21, nozzleTemp: 225, bedTemp: 40  },
-  { id: "6", name: "ASA",          brand: "Prusament",  spoolPrice: 30, spoolWeight: 1, density: 1.07, nozzleTemp: 245, bedTemp: 100 },
-  { id: "7", name: "Nylon (PA)",   brand: "Polymaker",  spoolPrice: 45, spoolWeight: 1, density: 1.14, nozzleTemp: 255, bedTemp: 70  },
-  { id: "8", name: "Résine Standard", brand: "Elegoo",  spoolPrice: 35, spoolWeight: 1, density: 1.10, nozzleTemp: 0,   bedTemp: 0   },
+  { id: "1", name: "PLA Standard", brand: "Bambu Lab",  spoolPrice: 23,     spoolWeight: 1,   density: 1.24, nozzleTemp: 205, bedTemp: 60  },
+  { id: "2", name: "PLA Tough",    brand: "Polymaker",  spoolPrice: 44.58,  spoolWeight: 0.75,density: 1.24, nozzleTemp: 205, bedTemp: 60  },
+  { id: "3", name: "PETG",         brand: "Bambu Lab",  spoolPrice: 26,     spoolWeight: 1,   density: 1.27, nozzleTemp: 235, bedTemp: 75  },
+  { id: "4", name: "ABS",          brand: "Polymaker",  spoolPrice: 22,     spoolWeight: 1,   density: 1.04, nozzleTemp: 240, bedTemp: 100 },
+  { id: "5", name: "TPU",          brand: "Overture",   spoolPrice: 35,     spoolWeight: 1,   density: 1.21, nozzleTemp: 225, bedTemp: 40  },
+  { id: "6", name: "ASA",          brand: "Prusament",  spoolPrice: 30,     spoolWeight: 1,   density: 1.07, nozzleTemp: 245, bedTemp: 100 },
+  { id: "7", name: "PA6-CF",       brand: "Polymaker",  spoolPrice: 156.98, spoolWeight: 2,   density: 1.14, nozzleTemp: 255, bedTemp: 70  },
 ];
 
 export const DEFAULT_PARAMETERS: Parameters = {
