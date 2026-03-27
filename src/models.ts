@@ -3,20 +3,32 @@
 export interface Material {
   id: string;
   name: string;
-  type: "FDM" | "SLA/MSLA";
+  brand: string;
   spoolPrice: number;   // €
   spoolWeight: number;  // kg
   density: number;      // g/cm³
+  nozzleTemp: number;   // °C
+  bedTemp: number;      // °C
 }
+
+export type BedSize = "small" | "medium" | "large" | "xlarge";
+
+export const BED_SIZE_OPTIONS: { value: BedSize; label: string; maxW: number }[] = [
+  { value: "small",  label: "Petit (≤200 mm, ex: Ender 3)",           maxW: 120 },
+  { value: "medium", label: "Moyen (~235 mm, ex: Bambu Lab)",         maxW: 180 },
+  { value: "large",  label: "Grand (~300 mm, ex: Prusa Core One L)",  maxW: 250 },
+  { value: "xlarge", label: "Très grand (400 mm+, ex: Ender 5 Max)",  maxW: 450 },
+];
 
 export interface Parameters {
   electricityCost: number;      // €/kWh
-  machinePurchasePrice: number; // €
-  machineLifespan: number;     // heures
   laborRate: number;           // €/h
   failureRate: number;         // 0-1
   vatRate: number;             // 0-1
   profitMargin: number;        // 0-1
+  bedSize: BedSize;
+  tierQuantities: number[];    // ex: [1, 5, 10, 25, 50, 100, 150]
+  discountStep: number;        // 0-1 (ex: 0.05 = 5% par palier)
 }
 
 export interface PrintJob {
@@ -24,11 +36,9 @@ export interface PrintJob {
   materialId: string;
   weightGrams: number;
   printDurationHours: number;
-  printerPowerWatts: number;
   manualWorkHours: number;
   quantity: number;
   customBasePrice: number;
-  discountStep: number; // 0-1 (ex: 0.05 = 5%)
 }
 
 export interface PriceTier {
@@ -40,11 +50,34 @@ export interface PriceTier {
 
 export type Profitability = "OUI" | "FAIBLE" | "NON";
 
+export interface SavedProject {
+  id: string;
+  projectName: string;
+  objectNumber: string;
+  unitPrice: number;
+  client: string;
+  date: string;           // ISO date string
+  snapshot: PrintJob;     // full job snapshot for restore
+  materialId: string;
+  materialName: string;
+}
+
+export interface ConsumptionBreakdown {
+  bedPower: number;          // W
+  hotendPower: number;       // W
+  motorsPower: number;       // W
+  electronicsPower: number;  // W
+  avgPowerW: number;         // W total
+  warmupWh: number;          // Wh
+  totalWh: number;           // Wh
+  costEuros: number;         // €
+}
+
 export interface PriceResult {
   materialPricePerKg: number;
   materialCost: number;
+  consumption: ConsumptionBreakdown;
   electricityCost: number;
-  amortizationCost: number;
   laborCost: number;
   directSubtotal: number;
   failureSurcharge: number;
@@ -67,41 +100,201 @@ export interface PriceResult {
 // --- Default data ---
 
 export const DEFAULT_MATERIALS: Material[] = [
-  { id: "1", name: "PLA Standard", type: "FDM", spoolPrice: 20, spoolWeight: 1, density: 1.24 },
-  { id: "2", name: "PLA+", type: "FDM", spoolPrice: 25, spoolWeight: 1, density: 1.24 },
-  { id: "3", name: "PETG", type: "FDM", spoolPrice: 25, spoolWeight: 1, density: 1.27 },
-  { id: "4", name: "ABS", type: "FDM", spoolPrice: 22, spoolWeight: 1, density: 1.04 },
-  { id: "5", name: "TPU", type: "FDM", spoolPrice: 35, spoolWeight: 1, density: 1.21 },
-  { id: "6", name: "ASA", type: "FDM", spoolPrice: 30, spoolWeight: 1, density: 1.07 },
-  { id: "7", name: "Nylon (PA)", type: "FDM", spoolPrice: 45, spoolWeight: 1, density: 1.14 },
-  { id: "8", name: "Résine Standard", type: "SLA/MSLA", spoolPrice: 35, spoolWeight: 1, density: 1.10 },
+  { id: "1", name: "PLA Standard", brand: "Bambu Lab",  spoolPrice: 20, spoolWeight: 1, density: 1.24, nozzleTemp: 205, bedTemp: 60  },
+  { id: "2", name: "PLA+",         brand: "eSUN",       spoolPrice: 25, spoolWeight: 1, density: 1.24, nozzleTemp: 205, bedTemp: 60  },
+  { id: "3", name: "PETG",         brand: "Bambu Lab",  spoolPrice: 25, spoolWeight: 1, density: 1.27, nozzleTemp: 235, bedTemp: 75  },
+  { id: "4", name: "ABS",          brand: "Polymaker",  spoolPrice: 22, spoolWeight: 1, density: 1.04, nozzleTemp: 240, bedTemp: 100 },
+  { id: "5", name: "TPU",          brand: "Overture",   spoolPrice: 35, spoolWeight: 1, density: 1.21, nozzleTemp: 225, bedTemp: 40  },
+  { id: "6", name: "ASA",          brand: "Prusament",  spoolPrice: 30, spoolWeight: 1, density: 1.07, nozzleTemp: 245, bedTemp: 100 },
+  { id: "7", name: "Nylon (PA)",   brand: "Polymaker",  spoolPrice: 45, spoolWeight: 1, density: 1.14, nozzleTemp: 255, bedTemp: 70  },
+  { id: "8", name: "Résine Standard", brand: "Elegoo",  spoolPrice: 35, spoolWeight: 1, density: 1.10, nozzleTemp: 0,   bedTemp: 0   },
 ];
 
 export const DEFAULT_PARAMETERS: Parameters = {
   electricityCost: 0.25,
-  machinePurchasePrice: 300,
-  machineLifespan: 5000,
   laborRate: 15,
   failureRate: 0.10,
   vatRate: 0.20,
   profitMargin: 0.30,
-};
-
-export const DEFAULT_PRINT_JOB: PrintJob = {
-  projectName: "Mon projet",
-  materialId: "7",
-  weightGrams: 50,
-  printDurationHours: 3.5,
-  printerPowerWatts: 150,
-  manualWorkHours: 0.5,
-  quantity: 25,
-  customBasePrice: 20,
+  bedSize: "medium",
+  tierQuantities: [1, 5, 10, 25, 50, 100, 150],
   discountStep: 0.05,
 };
 
-export const TIER_QUANTITIES = [1, 5, 10, 25, 50, 100, 150];
+export const DEFAULT_PRINT_JOB: PrintJob = {
+  projectName: "",
+  materialId: "",
+  weightGrams: 50,
+  printDurationHours: 3.5,
+  manualWorkHours: 0.5,
+  quantity: 25,
+  customBasePrice: 20,
+};
 
-// --- Calculator ---
+// --- Known densities (g/cm³) by material keyword ---
+
+const KNOWN_DENSITIES: [string[], number][] = [
+  [["pla"], 1.24],
+  [["petg", "pet-g"], 1.27],
+  [["abs"], 1.04],
+  [["tpu", "flex"], 1.21],
+  [["asa"], 1.07],
+  [["nylon", "pa6", "pa12", "pa "], 1.14],
+  [["pc", "polycarbonate"], 1.20],
+  [["hips"], 1.04],
+  [["pva"], 1.23],
+  [["pp", "polypropyl"], 0.90],
+  [["résine", "resine", "resin"], 1.10],
+  [["carbon", "cf"], 1.30],
+];
+
+export function guessDensity(name: string): number | null {
+  const lower = name.toLowerCase();
+  for (const [keywords, density] of KNOWN_DENSITIES) {
+    for (const kw of keywords) {
+      if (lower.includes(kw)) return density;
+    }
+  }
+  return null;
+}
+
+// --- Known thermal profiles (nozzle °C, bed °C) ---
+
+const KNOWN_THERMAL_PROFILES: [string[], { nozzle: number; bed: number }][] = [
+  [["pla"],                         { nozzle: 205, bed: 60  }],
+  [["petg", "pet-g"],               { nozzle: 235, bed: 75  }],
+  [["abs"],                         { nozzle: 240, bed: 100 }],
+  [["asa"],                         { nozzle: 245, bed: 100 }],
+  [["tpu", "flex"],                 { nozzle: 225, bed: 40  }],
+  [["nylon", "pa6", "pa12", "pa "], { nozzle: 255, bed: 70  }],
+  [["pc", "polycarbonate"],         { nozzle: 270, bed: 110 }],
+  [["hips"],                        { nozzle: 230, bed: 100 }],
+  [["pva"],                         { nozzle: 200, bed: 45  }],
+  [["pp", "polypropyl"],            { nozzle: 230, bed: 85  }],
+];
+
+export function guessThermalProfile(name: string): { nozzle: number; bed: number } | null {
+  const lower = name.toLowerCase();
+  for (const [keywords, profile] of KNOWN_THERMAL_PROFILES) {
+    for (const kw of keywords) {
+      if (lower.includes(kw)) return profile;
+    }
+  }
+  return null;
+}
+
+// --- Brands ---
+
+export const BUILTIN_BRANDS = [
+  "Bambu Lab",
+  "Creality",
+  "Elegoo",
+  "eSUN",
+  "Eryone",
+  "Fiberlogy",
+  "FormFutura",
+  "Hatchbox",
+  "Overture",
+  "Polymaker",
+  "Prusament",
+  "Sunlu",
+  "3DJake",
+];
+
+const CUSTOM_BRANDS_KEY = "unl3d_custom_brands";
+
+export function loadBrands(): string[] {
+  const custom = loadCustomBrands();
+  const all = [...BUILTIN_BRANDS, ...custom];
+  return [...new Set(all)].sort((a, b) => a.localeCompare(b));
+}
+
+function loadCustomBrands(): string[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_BRANDS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addCustomBrand(brand: string) {
+  const trimmed = brand.trim();
+  if (!trimmed) return;
+  const builtinLower = BUILTIN_BRANDS.map((b) => b.toLowerCase());
+  if (builtinLower.includes(trimmed.toLowerCase())) return;
+  const custom = loadCustomBrands();
+  if (custom.some((b) => b.toLowerCase() === trimmed.toLowerCase())) return;
+  custom.push(trimmed);
+  localStorage.setItem(CUSTOM_BRANDS_KEY, JSON.stringify(custom));
+}
+
+export function removeCustomBrand(brand: string) {
+  const custom = loadCustomBrands().filter((b) => b !== brand);
+  localStorage.setItem(CUSTOM_BRANDS_KEY, JSON.stringify(custom));
+}
+
+export function isCustomBrand(brand: string): boolean {
+  return !BUILTIN_BRANDS.some((b) => b.toLowerCase() === brand.toLowerCase());
+}
+
+// --- Consumption calculator ---
+
+function pidDuty(targetTemp: number): number {
+  const duty = 0.28 + ((targetTemp - 20.0) / 240.0) * 0.45;
+  return Math.max(0.15, Math.min(0.85, duty));
+}
+
+export function calculateConsumption(
+  material: Material,
+  durationHours: number,
+  bedSize: BedSize,
+  electricityPrice: number
+): ConsumptionBreakdown {
+  const bedMaxW = BED_SIZE_OPTIONS.find((o) => o.value === bedSize)!.maxW;
+  const nozzle = material.nozzleTemp;
+  const bed = material.bedTemp;
+
+  // If temps are 0 (e.g. resin), use minimal power
+  if (nozzle === 0 && bed === 0) {
+    const avgPowerW = 50; // UV LED + electronics
+    const totalWh = avgPowerW * durationHours;
+    return {
+      bedPower: 0,
+      hotendPower: 0,
+      motorsPower: 10,
+      electronicsPower: 40,
+      avgPowerW,
+      warmupWh: 0,
+      totalWh,
+      costEuros: (totalWh / 1000) * electricityPrice,
+    };
+  }
+
+  const bedPower = bedMaxW * pidDuty(bed);
+  const hotendMaxW = 30.0 + ((nozzle - 200.0) / 70.0) * 20.0;
+  const hotendPower = hotendMaxW * pidDuty(nozzle);
+  const motorsPower = 18;
+  const electronicsPower = 10;
+  const avgPowerW = bedPower + hotendPower + motorsPower + electronicsPower;
+
+  const warmupWh = bedMaxW * (5 / 60); // ~5 min at full bed power
+  const totalWh = avgPowerW * durationHours + warmupWh;
+  const costEuros = (totalWh / 1000) * electricityPrice;
+
+  return {
+    bedPower: Math.round(bedPower * 10) / 10,
+    hotendPower: Math.round(hotendPower * 10) / 10,
+    motorsPower,
+    electronicsPower,
+    avgPowerW: Math.round(avgPowerW * 10) / 10,
+    warmupWh: Math.round(warmupWh * 10) / 10,
+    totalWh: Math.round(totalWh * 10) / 10,
+    costEuros,
+  };
+}
+
+// --- Price calculator ---
 
 export function pricePerKg(m: Material): number {
   return m.spoolWeight > 0 ? m.spoolPrice / m.spoolWeight : 0;
@@ -114,13 +307,18 @@ export function calculate(
 ): PriceResult {
   const materialPricePerKg = pricePerKg(material);
   const materialCost = materialPricePerKg * (job.weightGrams / 1000);
-  const electricityCost =
-    (job.printerPowerWatts / 1000) * job.printDurationHours * params.electricityCost;
-  const amortizationCost =
-    job.printDurationHours * (params.machinePurchasePrice / Math.max(params.machineLifespan, 1));
+
+  const consumption = calculateConsumption(
+    material,
+    job.printDurationHours,
+    params.bedSize,
+    params.electricityCost
+  );
+  const electricityCost = consumption.costEuros;
+
   const laborCost = job.manualWorkHours * params.laborRate;
 
-  const directSubtotal = materialCost + electricityCost + amortizationCost + laborCost;
+  const directSubtotal = materialCost + electricityCost + laborCost;
   const failureSurcharge = directSubtotal * params.failureRate;
   const vat = directSubtotal * params.vatRate;
   const totalUnitCost = directSubtotal + failureSurcharge + vat;
@@ -130,8 +328,8 @@ export function calculate(
   const recommendedTotalPrice = recommendedUnitPrice * job.quantity;
 
   // Degressive tiers
-  const tiers: PriceTier[] = TIER_QUANTITIES.map((qty, i) => {
-    const discount = i * job.discountStep;
+  const tiers: PriceTier[] = params.tierQuantities.map((qty: number, i: number) => {
+    const discount = i * params.discountStep;
     const unitPrice = job.customBasePrice * (1 - discount);
     return { quantity: qty, discount, unitPrice, totalPrice: unitPrice * qty };
   });
@@ -159,8 +357,8 @@ export function calculate(
   return {
     materialPricePerKg,
     materialCost,
+    consumption,
     electricityCost,
-    amortizationCost,
     laborCost,
     directSubtotal,
     failureSurcharge,
@@ -187,12 +385,23 @@ const STORAGE_KEYS = {
   materials: "unl3d_materials",
   parameters: "unl3d_parameters",
   printJob: "unl3d_printjob",
+  projects: "unl3d_projects",
 } as const;
 
 export function loadMaterials(): Material[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.materials);
-    return raw ? JSON.parse(raw) : DEFAULT_MATERIALS;
+    if (!raw) return DEFAULT_MATERIALS;
+    const parsed = JSON.parse(raw) as Partial<Material>[];
+    // Migrate old data that may lack nozzleTemp/bedTemp
+    return parsed.map((m) => {
+      const profile = guessThermalProfile(m.name ?? "");
+      return {
+        ...m,
+        nozzleTemp: m.nozzleTemp ?? profile?.nozzle ?? 200,
+        bedTemp: m.bedTemp ?? profile?.bed ?? 60,
+      } as Material;
+    });
   } catch {
     return DEFAULT_MATERIALS;
   }
@@ -226,4 +435,17 @@ export function loadPrintJob(): PrintJob {
 
 export function savePrintJob(job: PrintJob) {
   localStorage.setItem(STORAGE_KEYS.printJob, JSON.stringify(job));
+}
+
+export function loadProjects(): SavedProject[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.projects);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveProjects(projects: SavedProject[]) {
+  localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
 }

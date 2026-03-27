@@ -1,39 +1,70 @@
-import { useState } from "react";
-import { type Material, pricePerKg } from "../models";
+import { useState, useEffect } from "react";
+import { type Material, pricePerKg, guessDensity, guessThermalProfile, loadBrands, addCustomBrand, removeCustomBrand, isCustomBrand } from "../models";
+import NumberInput from "./NumberInput";
 
 interface Props {
   materials: Material[];
   setMaterials: React.Dispatch<React.SetStateAction<Material[]>>;
-  onReset: () => void;
 }
 
 function emptyMaterial(): Material {
   return {
     id: crypto.randomUUID(),
     name: "",
-    type: "FDM",
+    brand: "",
     spoolPrice: 20,
     spoolWeight: 1,
     density: 1.24,
+    nozzleTemp: 200,
+    bedTemp: 60,
   };
 }
 
-export default function MaterialsPage({ materials, setMaterials, onReset }: Props) {
+export default function MaterialsPage({ materials, setMaterials }: Props) {
   const [editing, setEditing] = useState<Material | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [autoFlags, setAutoFlags] = useState({ density: false, thermal: false });
+  const [brands, setBrands] = useState<string[]>(loadBrands);
+
+  // When the material name changes in "new" mode, auto-fill density + thermal
+  useEffect(() => {
+    if (!editing || !isNew) return;
+    const guessedDensity = guessDensity(editing.name);
+    const guessedThermal = guessThermalProfile(editing.name);
+
+    setEditing((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        ...(guessedDensity !== null ? { density: guessedDensity } : {}),
+        ...(guessedThermal !== null ? { nozzleTemp: guessedThermal.nozzle, bedTemp: guessedThermal.bed } : {}),
+      };
+    });
+    setAutoFlags({
+      density: guessedDensity !== null,
+      thermal: guessedThermal !== null,
+    });
+  }, [editing?.name, isNew]);
 
   function openAdd() {
     setEditing(emptyMaterial());
     setIsNew(true);
+    setAutoFlags({ density: false, thermal: false });
   }
 
   function openEdit(m: Material) {
     setEditing({ ...m });
     setIsNew(false);
+    setAutoFlags({ density: false, thermal: false });
   }
 
   function handleSave() {
     if (!editing || !editing.name.trim()) return;
+    const trimmedBrand = editing.brand.trim();
+    if (trimmedBrand) {
+      addCustomBrand(trimmedBrand);
+      setBrands(loadBrands());
+    }
     if (isNew) {
       setMaterials((prev) => [...prev, editing]);
     } else {
@@ -46,8 +77,14 @@ export default function MaterialsPage({ materials, setMaterials, onReset }: Prop
     setMaterials((prev) => prev.filter((m) => m.id !== id));
   }
 
+  const autoLabel = (
+    <span style={{ marginLeft: 8, fontSize: 11, color: "var(--green)", fontWeight: 500 }}>
+      auto
+    </span>
+  );
+
   return (
-    <div className="page">
+    <div className="page page-wide">
       <h1 className="page-title">Matériaux</h1>
 
       <div className="toolbar">
@@ -55,22 +92,22 @@ export default function MaterialsPage({ materials, setMaterials, onReset }: Prop
           <button className="btn btn-primary btn-sm" onClick={openAdd}>
             + Ajouter
           </button>
-          <button className="btn btn-danger btn-sm" onClick={onReset}>
-            Réinitialiser
-          </button>
         </div>
       </div>
 
       <div className="card">
+        <div className="table-scroll">
         <table className="data-table">
           <thead>
             <tr>
               <th>Matériau</th>
-              <th>Type</th>
+              <th>Marque</th>
               <th>Prix bobine</th>
               <th>Poids</th>
               <th>Prix/kg</th>
               <th>Densité</th>
+              <th>Buse</th>
+              <th>Plateau</th>
               <th></th>
             </tr>
           </thead>
@@ -78,11 +115,13 @@ export default function MaterialsPage({ materials, setMaterials, onReset }: Prop
             {materials.map((m) => (
               <tr key={m.id}>
                 <td>{m.name}</td>
-                <td>{m.type}</td>
+                <td>{m.brand}</td>
                 <td>{m.spoolPrice.toFixed(2)} €</td>
                 <td>{m.spoolWeight.toFixed(2)} kg</td>
                 <td>{pricePerKg(m).toFixed(2)} €</td>
                 <td>{m.density.toFixed(2)}</td>
+                <td>{m.nozzleTemp > 0 ? `${m.nozzleTemp} °C` : "—"}</td>
+                <td>{m.bedTemp > 0 ? `${m.bedTemp} °C` : "—"}</td>
                 <td style={{ textAlign: "right" }}>
                   <button className="btn btn-secondary btn-sm" onClick={() => openEdit(m)}>
                     Modifier
@@ -95,13 +134,14 @@ export default function MaterialsPage({ materials, setMaterials, onReset }: Prop
             ))}
             {materials.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: 24 }}>
+                <td colSpan={9} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: 24 }}>
                   Aucun matériau
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Edit / Add Modal */}
@@ -118,53 +158,133 @@ export default function MaterialsPage({ materials, setMaterials, onReset }: Prop
                   type="text"
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                  placeholder="ex: PLA, PETG, ABS..."
                   autoFocus
                 />
               </div>
               <div className="modal-field">
-                <label>Type</label>
-                <select
-                  value={editing.type}
-                  onChange={(e) =>
-                    setEditing({ ...editing, type: e.target.value as Material["type"] })
-                  }
-                >
-                  <option value="FDM">FDM</option>
-                  <option value="SLA/MSLA">SLA/MSLA</option>
-                </select>
+                <label>Marque</label>
+                <input
+                  type="text"
+                  list="brand-list"
+                  value={editing.brand}
+                  onChange={(e) => setEditing({ ...editing, brand: e.target.value })}
+                  placeholder="Choisir ou saisir une marque"
+                />
+                <datalist id="brand-list">
+                  {brands.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+                {brands.some((b) => isCustomBrand(b)) && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                    {brands.filter(isCustomBrand).map((b) => (
+                      <span
+                        key={b}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontSize: 11,
+                          padding: "2px 8px",
+                          borderRadius: 12,
+                          background: "var(--bg-grouped)",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        {b}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            removeCustomBrand(b);
+                            setBrands(loadBrands());
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--red)",
+                            cursor: "default",
+                            fontSize: 12,
+                            padding: "0 2px",
+                            lineHeight: 1,
+                          }}
+                          title={`Supprimer "${b}"`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="modal-field">
                 <label>Prix bobine (€)</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={editing.spoolPrice}
                   step={0.5}
-                  onChange={(e) =>
-                    setEditing({ ...editing, spoolPrice: parseFloat(e.target.value) || 0 })
-                  }
+                  onChange={(v) => setEditing({ ...editing, spoolPrice: v })}
+                  style={{ textAlign: "left", width: "100%" }}
                 />
               </div>
               <div className="modal-field">
                 <label>Poids bobine (kg)</label>
-                <input
-                  type="number"
+                <NumberInput
                   value={editing.spoolWeight}
                   step={0.1}
-                  onChange={(e) =>
-                    setEditing({ ...editing, spoolWeight: parseFloat(e.target.value) || 0 })
-                  }
+                  onChange={(v) => setEditing({ ...editing, spoolWeight: v })}
+                  style={{ textAlign: "left", width: "100%" }}
                 />
               </div>
               <div className="modal-field">
-                <label>Densité (g/cm³)</label>
-                <input
-                  type="number"
+                <label>
+                  Densité (g/cm³)
+                  {autoFlags.density && autoLabel}
+                </label>
+                <NumberInput
                   value={editing.density}
                   step={0.01}
-                  onChange={(e) =>
-                    setEditing({ ...editing, density: parseFloat(e.target.value) || 0 })
-                  }
+                  onChange={(v) => {
+                    setEditing({ ...editing, density: v });
+                    setAutoFlags((f) => ({ ...f, density: false }));
+                  }}
+                  style={{ textAlign: "left", width: "100%" }}
                 />
+              </div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div className="modal-field" style={{ flex: 1 }}>
+                  <label>
+                    Temp. buse (°C)
+                    {autoFlags.thermal && autoLabel}
+                  </label>
+                  <NumberInput
+                    value={editing.nozzleTemp}
+                    step={5}
+                    min={0}
+                    max={400}
+                    onChange={(v) => {
+                      setEditing({ ...editing, nozzleTemp: v });
+                      setAutoFlags((f) => ({ ...f, thermal: false }));
+                    }}
+                    style={{ textAlign: "left", width: "100%" }}
+                  />
+                </div>
+                <div className="modal-field" style={{ flex: 1 }}>
+                  <label>
+                    Temp. plateau (°C)
+                    {autoFlags.thermal && autoLabel}
+                  </label>
+                  <NumberInput
+                    value={editing.bedTemp}
+                    step={5}
+                    min={0}
+                    max={200}
+                    onChange={(v) => {
+                      setEditing({ ...editing, bedTemp: v });
+                      setAutoFlags((f) => ({ ...f, thermal: false }));
+                    }}
+                    style={{ textAlign: "left", width: "100%" }}
+                  />
+                </div>
               </div>
             </div>
             <div className="modal-footer">
