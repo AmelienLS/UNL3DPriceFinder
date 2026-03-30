@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2/main/tauri-conf.schema.json",
-  "productName": "UNL3D Pricer",
+  "productName": "UNL3D-Pricer",
   "identifier": "com.unl3d.pricer",
   "version": "1.9.4",
   "build": {
