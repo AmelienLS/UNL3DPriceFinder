@@ -7,6 +7,7 @@
 - Suppression du champ `version` dans `tauri.conf.json` : Tauri v2 lit désormais la version directement depuis `package.json`, une seule source de vérité à maintenir.
 - Le workflow GitHub Actions met à jour automatiquement `package.json` via `npm version --no-git-tag-version` en utilisant la version extraite du message de commit (ex: `V1.7.1`). Plus aucun fichier de version à mettre à jour manuellement.
 - La version affichée en bas de chaque page est désormais lue dynamiquement via `getVersion()` de `@tauri-apps/api/app` au lieu d'être codée en dur.
+- Correction de la génération de plusieurs artéfacts de versions différentes : le cache Rust conservait les anciens `.dmg` et `.exe`, que le glob `*` capturait tous. Les anciens artéfacts sont maintenant supprimés avant chaque build.
 
 ## [1.7.0] - 2026-03-30
 > Commit : `feat(data): add JSON export and import in parameters page`
