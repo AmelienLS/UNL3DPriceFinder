@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [1.6.3] - 2026-03-30
+> Commit : `fix(icons): regenerate icon.ico with valid RGBA PNG format`
+### Corrigé
+- `icon.ico` régénéré avec le bon color type PNG (RGBA = type 6) au lieu de RGB (type 2). Le mismatch entre l'en-tête IHDR et les données pixel corrompait le fichier et faisait échouer le build Windows.
+
 ## [1.6.2] - 2026-03-30
 > Commit : `chore(ci): force Node.js 24 for GitHub Actions`
 ### Modifié
