@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { getVersion } from "@tauri-apps/api/app";
 import {
   type Material,
   type Parameters,
@@ -33,7 +34,9 @@ export default function App() {
   const [parameters, setParameters] = useState<Parameters>(loadParameters);
   const [printJob, setPrintJob] = useState<PrintJob>(loadPrintJob);
   const [projects, setProjects] = useState<SavedProject[]>(loadProjects);
+  const [appVersion, setAppVersion] = useState<string>("");
 
+  useEffect(() => { getVersion().then(setAppVersion); }, []);
   useEffect(() => saveMaterials(materials), [materials]);
   useEffect(() => saveParameters(parameters), [parameters]);
   useEffect(() => savePrintJob(printJob), [printJob]);
@@ -127,7 +130,7 @@ export default function App() {
             />
           )}
           <footer className="page-footer">
-            Amélien LARADE — UNL3D Prix v1.6.0
+            Amélien LARADE — UNL3D Prix v{appVersion}
           </footer>
         </main>
       </div>

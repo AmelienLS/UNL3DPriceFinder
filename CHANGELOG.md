@@ -1,5 +1,13 @@
 # Journal des modifications
 
+## [1.7.1] - 2026-03-30
+> Commit : `fix(version): sync version files and make footer version dynamic`
+### Corrigé
+- `package.json` mis à jour à 1.7.0 (était resté à 1.6.0), ce qui causait un DMG nommé avec l'ancienne version lors du build GitHub Actions.
+- Suppression du champ `version` dans `tauri.conf.json` : Tauri v2 lit désormais la version directement depuis `package.json`, une seule source de vérité à maintenir.
+- Le workflow GitHub Actions met à jour automatiquement `package.json` via `npm version --no-git-tag-version` en utilisant la version extraite du message de commit (ex: `V1.7.1`). Plus aucun fichier de version à mettre à jour manuellement.
+- La version affichée en bas de chaque page est désormais lue dynamiquement via `getVersion()` de `@tauri-apps/api/app` au lieu d'être codée en dur.
+
 ## [1.7.0] - 2026-03-30
 > Commit : `feat(data): add JSON export and import in parameters page`
 ### Ajouté
