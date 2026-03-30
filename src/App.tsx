@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getVersion } from "@tauri-apps/api/app";
+import { version as pkgVersion } from "../package.json";
 import {
   type Material,
   type Parameters,
@@ -36,7 +37,7 @@ export default function App() {
   const [projects, setProjects] = useState<SavedProject[]>(loadProjects);
   const [appVersion, setAppVersion] = useState<string>("");
 
-  useEffect(() => { getVersion().then(setAppVersion); }, []);
+  useEffect(() => { getVersion().then(setAppVersion).catch(() => setAppVersion(pkgVersion)); }, []);
   useEffect(() => saveMaterials(materials), [materials]);
   useEffect(() => saveParameters(parameters), [parameters]);
   useEffect(() => savePrintJob(printJob), [printJob]);

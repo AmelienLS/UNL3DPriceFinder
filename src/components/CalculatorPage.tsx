@@ -168,21 +168,41 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 <span className="card-row-label">Marge bénéficiaire ({pct(result.profitMarginRate)})</span>
                 <span className="card-row-value">{euro(result.marginAmount)}</span>
               </div>
+              <div className="divider" />
               <div className="card-row">
                 <span className="card-row-label">Prix unitaire HT</span>
-                <span className="card-row-value strong">{euro(result.recommendedUnitPrice)}</span>
+                <span className="card-row-value strong">{euro(result.recommendedUnitPriceHT)}</span>
               </div>
+              {result.vatRegistered && (
+                <div className="card-row">
+                  <span className="card-row-label">TVA sur vente ({pct(parameters.vatRate)})</span>
+                  <span className="card-row-value">{euro(result.vatOnSale)}</span>
+                </div>
+              )}
               <div className="card-row">
-                <span className="card-row-label">Prix total HT (×{job.quantity})</span>
-                <span className="card-row-value accent">{euro(result.recommendedTotalPrice)}</span>
+                <span className="card-row-label">Prix unitaire {result.vatRegistered ? "TTC" : "client"}</span>
+                <span className="card-row-value accent">{euro(result.recommendedUnitPriceTTC)}</span>
               </div>
+              <div className="divider" />
+              <div className="card-row">
+                <span className="card-row-label">Total HT (×{job.quantity})</span>
+                <span className="card-row-value">{euro(result.recommendedTotalPriceHT)}</span>
+              </div>
+              {result.vatRegistered && (
+                <div className="card-row">
+                  <span className="card-row-label">Total TTC (×{job.quantity})</span>
+                  <span className="card-row-value accent">{euro(result.recommendedTotalPriceTTC)}</span>
+                </div>
+              )}
             </div>
 
             {/* --- Custom Pricing --- */}
             <div className="card-header">Tarification personnalisée</div>
             <div className="card">
               <div className="card-row">
-                <span className="card-row-label">Prix TTC</span>
+                <span className="card-row-label">
+                  Prix {result.vatRegistered ? "TTC" : "client"} unitaire
+                </span>
                 <div className="input-group">
                   <NumberInput
                     value={job.customBasePrice}
@@ -192,18 +212,42 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                   <span className="input-unit">€</span>
                 </div>
               </div>
+              {result.vatRegistered && job.customBasePrice > 0 && (
+                <>
+                  <div className="card-row">
+                    <span className="card-row-label" style={{ color: "var(--text-tertiary)", fontSize: 12 }}>
+                      dont TVA ({pct(parameters.vatRate)})
+                    </span>
+                    <span className="card-row-value" style={{ fontSize: 12 }}>
+                      {euro(result.customVATOnSale)}
+                    </span>
+                  </div>
+                  <div className="card-row">
+                    <span className="card-row-label" style={{ color: "var(--text-tertiary)", fontSize: 12 }}>
+                      Prix HT équivalent
+                    </span>
+                    <span className="card-row-value" style={{ fontSize: 12 }}>
+                      {euro(result.customUnitPriceHT)}
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="divider" />
               <div className="card-row">
                 <span className="card-row-label">Remise appliquée (auto)</span>
                 <span className="card-row-value">{pct(result.customDiscount)}</span>
               </div>
               <div className="card-row">
-                <span className="card-row-label">Prix unitaire après remise</span>
-                <span className="card-row-value strong">{euro(result.customUnitPrice)}</span>
+                <span className="card-row-label">
+                  Prix unitaire {result.vatRegistered ? "TTC" : "client"} après remise
+                </span>
+                <span className="card-row-value strong">{euro(result.customUnitPriceTTC)}</span>
               </div>
               <div className="card-row">
-                <span className="card-row-label">Prix total HT</span>
-                <span className="card-row-value accent">{euro(result.customTotalPrice)}</span>
+                <span className="card-row-label">
+                  Prix total {result.vatRegistered ? "TTC" : "client"} (×{job.quantity})
+                </span>
+                <span className="card-row-value accent">{euro(result.customTotalPriceTTC)}</span>
               </div>
               <div className="divider" />
               <div className="card-row">
@@ -212,11 +256,15 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
               </div>
               <div className="card-row">
                 <span className="card-row-label">Bénéfice unitaire</span>
-                <span className="card-row-value">{euro(result.unitProfit)}</span>
+                <span className={`card-row-value${result.unitProfit < 0 ? " text-danger" : ""}`}>
+                  {euro(result.unitProfit)}
+                </span>
               </div>
               <div className="card-row">
                 <span className="card-row-label">Bénéfice total</span>
-                <span className="card-row-value strong">{euro(result.totalProfit)}</span>
+                <span className={`card-row-value strong${result.totalProfit < 0 ? " text-danger" : ""}`}>
+                  {euro(result.totalProfit)}
+                </span>
               </div>
               <div className="card-row">
                 <span className="card-row-label">Rentable ?</span>
@@ -311,6 +359,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
           result={result}
           customBasePrice={job.customBasePrice}
           quantity={job.quantity}
+          vatRate={parameters.vatRate}
           onCustomPriceChange={(v) => updateJob({ customBasePrice: v })}
           onQuantityChange={(v) => updateJob({ quantity: v })}
         />
@@ -349,10 +398,10 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 />
               </div>
               <div className="modal-field">
-                <label>Prix unitaire (€)</label>
+                <label>Prix unitaire {result.vatRegistered ? "TTC" : "client"} (€)</label>
                 <input
                   type="text"
-                  value={euro(result.customUnitPrice)}
+                  value={euro(result.customUnitPriceTTC)}
                   disabled
                   style={{ opacity: 0.6 }}
                 />
@@ -377,7 +426,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                   onSaveProject({
                     objectNumber: saveFields.objectNumber,
                     client: saveFields.client,
-                    unitPrice: result.customUnitPrice,
+                    unitPrice: result.customUnitPriceTTC,
                   });
                   setShowSave(false);
                 }}

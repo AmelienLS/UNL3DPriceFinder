@@ -134,10 +134,32 @@ export default function ParametersPage({ parameters: p, setParameters, materials
         <Field label="Taux horaire" value={p.laborRate} onChange={(v) => set({ laborRate: v })} unit="€/h" />
       </div>
 
+      <div className="card-header">TVA</div>
+      <div className="card">
+        <div className="card-row">
+          <span className="card-row-label">
+            Assujetti à la TVA
+            <span style={{ display: "block", fontSize: 11, color: "var(--text-tertiary)", fontWeight: 400 }}>
+              {p.vatRegistered
+                ? "TVA achats récupérée · TVA vente facturée au client"
+                : "TVA achats = coût · Pas de TVA facturée au client"}
+            </span>
+          </span>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={p.vatRegistered}
+              onChange={(e) => set({ vatRegistered: e.target.checked })}
+            />
+            <span className="toggle-slider" />
+          </label>
+        </div>
+        <Field label="Taux de TVA" value={p.vatRate} onChange={(v) => set({ vatRate: v })} unit="%" isPercent />
+      </div>
+
       <div className="card-header">Marges & Frais</div>
       <div className="card">
         <Field label="Taux d'échec moyen" value={p.failureRate} onChange={(v) => set({ failureRate: v })} unit="%" isPercent />
-        <Field label="TVA" value={p.vatRate} onChange={(v) => set({ vatRate: v })} unit="%" isPercent />
         <Field label="Marge bénéficiaire" value={p.profitMargin} onChange={(v) => set({ profitMargin: v })} unit="%" isPercent />
       </div>
 

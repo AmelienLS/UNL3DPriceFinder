@@ -21,25 +21,30 @@ interface Props {
   result: PriceResult;
   customBasePrice: number;
   quantity: number;
+  vatRate: number;
   onCustomPriceChange: (v: number) => void;
   onQuantityChange: (v: number) => void;
 }
 
+// Unified color palette — same order for all price pies
+const COLORS = {
+  material:    "#007aff", // blue
+  electricity: "#ff9500", // orange
+  labor:       "#34c759", // green
+  failure:     "#ff3b30", // red
+  vatIn:       "#af52de", // purple - TVA (coût)
+  margin:      "#5856d6", // indigo - Marge
+  vatOut:      "#ff6b9d", // pink   - TVA vente
+};
+
 const PRODUCTION_COLORS = [
-  "#007aff", // blue - material
-  "#ff9500", // orange - electricity
-  "#34c759", // green - labor
-  "#ff3b30", // red - failure
-  "#af52de", // purple - TVA
+  COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn,
 ];
 
-const SELLING_COLORS = [
-  "#007aff", // blue - material
-  "#ff9500", // orange - electricity
-  "#34c759", // green - labor
-  "#ff3b30", // red - failure
-  "#af52de", // purple - TVA
-  "#5856d6", // indigo - margin
+// Selling & Custom use the same order: costs + marge + TVA vente
+const PRICE_COLORS_BASE = [
+  COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn,
+  COLORS.margin, COLORS.vatOut,
 ];
 
 function euro(n: number): string {
@@ -174,74 +179,94 @@ function EditablePrice({
   );
 }
 
-export default function ChartsSection({ result, customBasePrice, quantity, onCustomPriceChange, onQuantityChange }: Props) {
+export default function ChartsSection({ result, customBasePrice, quantity, vatRate, onCustomPriceChange, onQuantityChange }: Props) {
   // --- Find applicable discount for current quantity ---
   let currentDiscount = 0;
   for (const tier of result.tiers) {
     if (quantity >= tier.quantity) currentDiscount = tier.discount;
   }
 
-  // --- Production cost data (without margin) ---
+  const vatRegistered = result.vatRegistered;
+
+  // --- Production cost data (break-even) ---
+  // Non-assujetti : la TVA achats est un coût
+  // Assujetti : pas de TVA achats dans les coûts
   const productionData = [
-    { name: "Matière", value: result.materialCost },
-    { name: "Électricité", value: result.electricityCost },
+    { name: "Matière",      value: result.materialCost },
+    { name: "Électricité",  value: result.electricityCost },
     { name: "Main d'œuvre", value: result.laborCost },
-    { name: "Échec", value: result.failureSurcharge },
-    { name: "TVA", value: result.vat },
+    { name: "Échec",        value: result.failureSurcharge },
+    ...(!vatRegistered && result.vat > 0 ? [{ name: "TVA (coût)", value: result.vat }] : []),
   ].filter((d) => d.value > 0);
 
   const productionTotal = productionData.reduce((s, d) => s + d.value, 0);
 
-  // --- Selling price data: apply tier discount to recommended price ---
-  const recoUnitWithDiscount = result.recommendedUnitPrice * (1 - currentDiscount);
-  const recoMarginWithDiscount = recoUnitWithDiscount - productionTotal;
-  const recoIsLoss = recoMarginWithDiscount <= 0;
+  // --- Recommended pie ---
+  // Assujetti : TTC = HT × (1+taux), on ajoute une slice TVA vente
+  // Non-assujetti : le prix client = HT (pas de TVA vente)
+  const recoHT = result.recommendedUnitPriceHT * (1 - currentDiscount);
+  const recoVATOnSale = vatRegistered ? recoHT * vatRate : 0;
+  const recoTTC = recoHT + recoVATOnSale;
+  const recoMarginHT = recoHT - productionTotal;
+  const recoIsLoss = recoMarginHT < 0;
 
   const sellingData = recoIsLoss
     ? [
         ...productionData.map((d) => ({
           ...d,
-          value: d.value * (recoUnitWithDiscount / productionTotal),
+          value: recoHT > 0 ? d.value * (recoHT / productionTotal) : d.value,
         })),
-        { name: "Perte", value: 0 },
+        ...(vatRegistered ? [{ name: "TVA vente", value: recoVATOnSale }] : []),
       ].filter((d) => d.value > 0)
     : [
         ...productionData,
-        { name: "Marge", value: recoMarginWithDiscount },
+        { name: "Marge", value: recoMarginHT },
+        ...(vatRegistered ? [{ name: "TVA vente", value: recoVATOnSale }] : []),
       ].filter((d) => d.value > 0);
 
-  const sellingTotal = sellingData.reduce((s, d) => s + d.value, 0);
+  const sellingTotal = recoTTC > 0 ? recoTTC : sellingData.reduce((s, d) => s + d.value, 0);
 
-  // --- Custom price data: apply tier discount ---
-  const customUnitWithDiscount = customBasePrice * (1 - currentDiscount);
-  const customProfit = customUnitWithDiscount - productionTotal;
-  const customIsLoss = customProfit <= 0;
+  // --- Custom pie ---
+  const customTTC = result.customUnitPriceTTC * (customBasePrice > 0 ? 1 : 0);
+  const customHT = result.customUnitPriceHT;
+  const customVATOnSale = result.customVATOnSale;
+  const customProfit = customHT - productionTotal;
+  const customIsLoss = customProfit < 0 || customBasePrice === 0;
 
-  const customData = customIsLoss
-    ? [
-        ...productionData.map((d) => ({
-          ...d,
-          value: d.value * (customUnitWithDiscount / productionTotal),
-        })),
-        { name: "Perte", value: 0 },
-      ].filter((d) => d.value > 0)
-    : [
-        ...productionData,
-        { name: "Bénéfice", value: customProfit },
-      ].filter((d) => d.value > 0);
+  const customData = customBasePrice > 0
+    ? (customIsLoss
+      ? [
+          ...productionData.map((d) => ({
+            ...d,
+            value: customHT > 0 ? d.value * (customHT / productionTotal) : d.value,
+          })),
+          ...(vatRegistered && customVATOnSale > 0 ? [{ name: "TVA vente", value: customVATOnSale }] : []),
+        ].filter((d) => d.value > 0)
+      : [
+          ...productionData,
+          { name: "Marge", value: customProfit },
+          ...(vatRegistered && customVATOnSale > 0 ? [{ name: "TVA vente", value: customVATOnSale }] : []),
+        ].filter((d) => d.value > 0)
+      )
+    : productionData;
 
-  const customTotal = customData.reduce((s, d) => s + d.value, 0);
+  const customTotal = customTTC > 0 ? customTTC : customData.reduce((s, d) => s + d.value, 0);
+
+  // Same colors for both selling and custom pies
+  const lossColors = (n: number) => [
+    ...PRODUCTION_COLORS.slice(0, n),
+    ...(vatRegistered ? [COLORS.vatOut] : []),
+  ];
 
   const SELLING_COLORS_DYNAMIC = recoIsLoss
-    ? PRODUCTION_COLORS.slice(0, sellingData.length)
-    : SELLING_COLORS;
+    ? lossColors(productionData.length)
+    : PRICE_COLORS_BASE.slice(0, sellingData.length);
 
-  const CUSTOM_COLORS = customIsLoss
-    ? PRODUCTION_COLORS.slice(0, customData.length)
-    : [
-        ...PRODUCTION_COLORS.slice(0, productionData.length),
-        "#30b0c7", // teal - custom profit
-      ];
+  const CUSTOM_COLORS_DYNAMIC = customBasePrice === 0
+    ? PRODUCTION_COLORS
+    : customIsLoss
+      ? lossColors(productionData.length)
+      : PRICE_COLORS_BASE.slice(0, customData.length);
 
   // --- Merged data (1–150): continuous lines + bars at tier points ---
   function getDiscountAtQty(qty: number): number {
@@ -311,7 +336,7 @@ export default function ChartsSection({ result, customBasePrice, quantity, onCus
               data={sellingData}
               colors={SELLING_COLORS_DYNAMIC}
               total={sellingTotal}
-              centerLabel={recoIsLoss ? "À perte" : "Prix reco."}
+              centerLabel={recoIsLoss ? "À perte" : "TTC reco."}
               isDark={isDark}
               textColor={textColor}
               gridColor={gridColor}
@@ -329,9 +354,9 @@ export default function ChartsSection({ result, customBasePrice, quantity, onCus
             {customIsLoss && <div className="loss-banner">Vente à perte</div>}
             <CostPie
               data={customData}
-              colors={CUSTOM_COLORS}
+              colors={CUSTOM_COLORS_DYNAMIC}
               total={customTotal}
-              centerLabel={customIsLoss ? "À perte" : "Prix perso."}
+              centerLabel={customIsLoss ? "À perte" : "TTC perso."}
               isDark={isDark}
               textColor={textColor}
               gridColor={gridColor}

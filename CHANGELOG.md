@@ -1,5 +1,47 @@
 # Journal des modifications
 
+## [1.9.1] - 2026-03-30
+> Commit : `refactor(charts): unify colors and slice names across price pies`
+### Modifié
+- Les graphiques "Prix recommandé" et "Prix personnalisé" utilisent désormais la même palette de couleurs et les mêmes noms de slices ("Marge" au lieu de "Bénéfice").
+- Suppression des tableaux de couleurs séparés — un seul `PRICE_COLORS_BASE` partagé.
+
+## [1.9.0] - 2026-03-30
+> Commit : `feat(vat): add VAT-registered toggle for correct HT/TTC handling`
+### Ajouté
+- Paramètre "Assujetti à la TVA" (toggle) dans l'onglet Paramètres, section TVA.
+- **Non-assujetti** (défaut) : TVA achats = coût réel, prix client = HT, pas de TVA facturée.
+- **Assujetti** : TVA achats récupérée (pas un coût), TVA vente facturée au client, prix client = TTC.
+- Les graphiques s'adaptent : une seule slice TVA cohérente selon le statut, plus de double-comptage.
+- Les labels HT/TTC dans le calculateur s'adaptent dynamiquement selon le statut.
+### Supprimé
+- La distinction confuse "TVA achats / TVA vente" simultanée dans les graphiques.
+
+## [1.8.3] - 2026-03-30
+> Commit : `fix(footer): add fallback to package.json version when Tauri API unavailable`
+### Corrigé
+- La version dans le footer restait vide (`v`) car `getVersion()` de `@tauri-apps/api/app` échoue silencieusement hors contexte Tauri (dev browser). Ajout d'un fallback sur la version de `package.json` en cas d'erreur.
+
+## [1.8.2] - 2026-03-30
+> Commit : `fix(charts): correct TTC/TVA calculation in pie charts`
+### Corrigé
+- Graphique "Prix personnalisé" : la TVA affichée correspond maintenant à la TVA réelle du prix TTC saisi (= TTC × taux/(1+taux)), et non plus à la TVA sur les coûts d'achat.
+- Graphique "Prix recommandé" : affiche maintenant le prix TTC (HT + TVA vente) avec une slice distincte pour la TVA sur vente (en rose).
+- Les labels des graphiques passent de "Prix reco./perso." à "TTC reco./perso." pour indiquer clairement que ce sont des montants TTC.
+- Nouvelle couleur (rose) pour la slice "TVA vente" afin de la distinguer de la "TVA achats" (violet).
+
+## [1.8.1] - 2026-03-30
+> Commit : `fix(ci): skip build jobs on non-release commits`
+### Corrigé
+- Les jobs `build-macos` et `build-windows` ne se déclenchent plus que sur les commits contenant un numéro de version (ex: `V1.8.1`). Évite de générer des artefacts avec une version incorrecte sur les commits ordinaires.
+
+## [1.8.0] - 2026-03-30
+> Commit : `feat(calculator): clarify HT/TTC pricing throughout`
+### Modifié
+- Section "Prix recommandé" : affichage explicite du prix HT, de la TVA sur vente et du prix TTC unitaire et total.
+- Section "Tarification personnalisée" : l'entrée est "Prix TTC", avec décomposition en-dessous (TVA comprise + équivalent HT).
+- Les bénéfices unitaire et total s'affichent en rouge quand négatifs.
+
 ## [1.7.1] - 2026-03-30
 > Commit : `fix(version): sync version files and make footer version dynamic`
 ### Corrigé

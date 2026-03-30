@@ -22,13 +22,14 @@ export const BED_SIZE_OPTIONS: { value: BedSize; label: string; maxW: number }[]
 
 export interface Parameters {
   electricityCost: number;      // €/kWh
-  laborRate: number;           // €/h
-  failureRate: number;         // 0-1
-  vatRate: number;             // 0-1
-  profitMargin: number;        // 0-1
+  laborRate: number;            // €/h
+  failureRate: number;          // 0-1
+  vatRate: number;              // 0-1
+  vatRegistered: boolean;       // true = assujetti TVA (récupère TVA achats, facture TVA vente)
+  profitMargin: number;         // 0-1
   bedSize: BedSize;
-  tierQuantities: number[];    // ex: [1, 5, 10, 25, 50, 100, 150]
-  discountStep: number;        // 0-1 (ex: 0.05 = 5% par palier)
+  tierQuantities: number[];     // ex: [1, 5, 10, 25, 50, 100, 150]
+  discountStep: number;         // 0-1 (ex: 0.05 = 5% par palier)
 }
 
 export interface PrintJob {
@@ -74,6 +75,7 @@ export interface ConsumptionBreakdown {
 }
 
 export interface PriceResult {
+  vatRegistered: boolean;
   materialPricePerKg: number;
   materialCost: number;
   consumption: ConsumptionBreakdown;
@@ -81,15 +83,20 @@ export interface PriceResult {
   laborCost: number;
   directSubtotal: number;
   failureSurcharge: number;
-  vat: number;
-  totalUnitCost: number;
+  vat: number;              // TVA achats (coût si non-assujetti, 0 si assujetti)
+  totalUnitCost: number;    // coût de revient HT
   profitMarginRate: number;
   marginAmount: number;
-  recommendedUnitPrice: number;
-  recommendedTotalPrice: number;
+  recommendedUnitPriceHT: number;
+  recommendedUnitPriceTTC: number;
+  recommendedTotalPriceHT: number;
+  recommendedTotalPriceTTC: number;
+  vatOnSale: number;        // TVA facturée au client (0 si non-assujetti)
   customDiscount: number;
-  customUnitPrice: number;
-  customTotalPrice: number;
+  customUnitPriceTTC: number;   // prix après remise, toujours TTC côté client
+  customUnitPriceHT: number;    // HT équivalent
+  customVATOnSale: number;      // TVA sur le prix perso
+  customTotalPriceTTC: number;
   recalculatedMargin: number;
   unitProfit: number;
   totalProfit: number;
@@ -114,6 +121,7 @@ export const DEFAULT_PARAMETERS: Parameters = {
   laborRate: 15,
   failureRate: 0.10,
   vatRate: 0.20,
+  vatRegistered: false,
   profitMargin: 0.30,
   bedSize: "medium",
   tierQuantities: [1, 5, 10, 25, 50, 100, 150],
@@ -302,33 +310,46 @@ export function calculate(
 
   const directSubtotal = materialCost + electricityCost + laborCost;
   const failureSurcharge = directSubtotal * params.failureRate;
-  const vat = directSubtotal * params.vatRate;
-  const totalUnitCost = directSubtotal + failureSurcharge + vat;
+
+  // Assujetti TVA : la TVA sur achats est récupérée (pas un coût)
+  // Non-assujetti : la TVA sur achats est un coût réel
+  const vat = params.vatRegistered ? 0 : directSubtotal * params.vatRate;
+  const totalUnitCost = directSubtotal + failureSurcharge + vat; // coût de revient HT
 
   const marginAmount = totalUnitCost * params.profitMargin;
-  const recommendedUnitPrice = totalUnitCost + marginAmount;
-  const recommendedTotalPrice = recommendedUnitPrice * job.quantity;
+  const recommendedUnitPriceHT = totalUnitCost + marginAmount;
 
-  // Degressive tiers
+  // Assujetti : on facture la TVA au client → TTC = HT × (1 + taux)
+  // Non-assujetti : pas de TVA facturée → TTC = HT (même montant)
+  const vatOnSale = params.vatRegistered ? recommendedUnitPriceHT * params.vatRate : 0;
+  const recommendedUnitPriceTTC = recommendedUnitPriceHT + vatOnSale;
+  const recommendedTotalPriceHT = recommendedUnitPriceHT * job.quantity;
+  const recommendedTotalPriceTTC = recommendedUnitPriceTTC * job.quantity;
+
+  // Degressive tiers (basés sur le prix TTC client)
   const tiers: PriceTier[] = params.tierQuantities.map((qty: number, i: number) => {
     const discount = i * params.discountStep;
-    const unitPrice = job.customBasePrice * (1 - discount);
+    const unitPrice = job.customBasePrice * (1 - discount); // TTC
     return { quantity: qty, discount, unitPrice, totalPrice: unitPrice * qty };
   });
 
-  // Find applicable discount via LOOKUP logic (largest qty <= job.quantity)
+  // Find applicable discount
   let customDiscount = 0;
   for (const tier of tiers) {
-    if (job.quantity >= tier.quantity) {
-      customDiscount = tier.discount;
-    }
+    if (job.quantity >= tier.quantity) customDiscount = tier.discount;
   }
 
-  const customUnitPrice = job.customBasePrice * (1 - customDiscount);
-  const customTotalPrice = customUnitPrice * job.quantity;
+  // Custom price : l'utilisateur entre toujours un prix TTC client
+  const customUnitPriceTTC = job.customBasePrice * (1 - customDiscount);
+  const customUnitPriceHT = params.vatRegistered
+    ? customUnitPriceTTC / (1 + params.vatRate)
+    : customUnitPriceTTC; // non-assujetti : pas de TVA, TTC = HT
+  const customVATOnSale = customUnitPriceTTC - customUnitPriceHT;
+  const customTotalPriceTTC = customUnitPriceTTC * job.quantity;
+
   const recalculatedMargin =
-    totalUnitCost > 0 ? (customUnitPrice - totalUnitCost) / totalUnitCost : 0;
-  const unitProfit = customUnitPrice - totalUnitCost;
+    totalUnitCost > 0 ? (customUnitPriceHT - totalUnitCost) / totalUnitCost : 0;
+  const unitProfit = customUnitPriceHT - totalUnitCost;
   const totalProfit = unitProfit * job.quantity;
 
   let profitability: Profitability;
@@ -337,6 +358,7 @@ export function calculate(
   else profitability = "OUI";
 
   return {
+    vatRegistered: params.vatRegistered,
     materialPricePerKg,
     materialCost,
     consumption,
@@ -348,11 +370,16 @@ export function calculate(
     totalUnitCost,
     profitMarginRate: params.profitMargin,
     marginAmount,
-    recommendedUnitPrice,
-    recommendedTotalPrice,
+    recommendedUnitPriceHT,
+    recommendedUnitPriceTTC,
+    recommendedTotalPriceHT,
+    recommendedTotalPriceTTC,
+    vatOnSale,
     customDiscount,
-    customUnitPrice,
-    customTotalPrice,
+    customUnitPriceTTC,
+    customUnitPriceHT,
+    customVATOnSale,
+    customTotalPriceTTC,
     recalculatedMargin,
     unitProfit,
     totalProfit,
