@@ -431,3 +431,54 @@ export function loadProjects(): SavedProject[] {
 export function saveProjects(projects: SavedProject[]) {
   localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
 }
+
+// --- Import / Export ---
+
+export interface AppBackup {
+  version: string;
+  exportedAt: string;
+  materials: Material[];
+  parameters: Parameters;
+  projects: SavedProject[];
+}
+
+export function exportData(
+  materials: Material[],
+  parameters: Parameters,
+  projects: SavedProject[]
+): void {
+  const backup: AppBackup = {
+    version: "1.7.0",
+    exportedAt: new Date().toISOString(),
+    materials,
+    parameters,
+    projects,
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `unl3d-prix-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importData(file: File): Promise<AppBackup> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string) as AppBackup;
+        if (!data.materials || !data.parameters) {
+          reject(new Error("Fichier invalide : données manquantes."));
+          return;
+        }
+        resolve(data);
+      } catch {
+        reject(new Error("Fichier JSON invalide."));
+      }
+    };
+    reader.onerror = () => reject(new Error("Erreur de lecture du fichier."));
+    reader.readAsText(file);
+  });
+}

@@ -1,9 +1,17 @@
-import { type Parameters, BED_SIZE_OPTIONS, type BedSize } from "../models";
+import { useRef } from "react";
+import {
+  type Parameters, type Material, type SavedProject,
+  BED_SIZE_OPTIONS, type BedSize,
+  exportData, importData,
+} from "../models";
 import NumberInput from "./NumberInput";
 
 interface Props {
   parameters: Parameters;
   setParameters: React.Dispatch<React.SetStateAction<Parameters>>;
+  materials: Material[];
+  projects: SavedProject[];
+  onImport: (data: { materials: Material[]; parameters: Parameters; projects: SavedProject[] }) => void;
 }
 
 function Field({
@@ -37,8 +45,22 @@ function Field({
   );
 }
 
-export default function ParametersPage({ parameters: p, setParameters }: Props) {
+export default function ParametersPage({ parameters: p, setParameters, materials, projects, onImport }: Props) {
   const set = (patch: Partial<Parameters>) => setParameters((prev) => ({ ...prev, ...patch }));
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = await importData(file);
+      onImport({ materials: data.materials, parameters: data.parameters, projects: data.projects ?? [] });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur d'import.");
+    } finally {
+      e.target.value = "";
+    }
+  }
 
   function updateTierQty(index: number, value: number) {
     const next = [...p.tierQuantities];
@@ -61,6 +83,23 @@ export default function ParametersPage({ parameters: p, setParameters }: Props) 
   return (
     <div className="page">
       <h1 className="page-title">Paramètres</h1>
+
+      <div className="card-header">Données</div>
+      <div className="card">
+        <div className="card-row">
+          <span className="card-row-label">Exporter toutes les données</span>
+          <button className="btn btn-secondary btn-sm" onClick={() => exportData(materials, p, projects)}>
+            Exporter JSON
+          </button>
+        </div>
+        <div className="card-row">
+          <span className="card-row-label">Importer une sauvegarde</span>
+          <button className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()}>
+            Importer JSON
+          </button>
+          <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImport} />
+        </div>
+      </div>
 
       <div className="card-header">Électricité</div>
       <div className="card">

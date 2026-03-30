@@ -117,6 +117,13 @@ export default function App() {
             <ParametersPage
               parameters={parameters}
               setParameters={setParameters}
+              materials={materials}
+              projects={projects}
+              onImport={({ materials: m, parameters: p, projects: pr }) => {
+                setMaterials(m);
+                setParameters(p);
+                setProjects(pr);
+              }}
             />
           )}
           <footer className="page-footer">

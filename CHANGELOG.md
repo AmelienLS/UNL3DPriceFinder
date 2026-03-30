@@ -1,5 +1,11 @@
 # Journal des modifications
 
+## [1.7.0] - 2026-03-30
+> Commit : `feat(data): add JSON export and import in parameters page`
+### Ajouté
+- Export de toutes les données (matériaux, paramètres, projets) en fichier JSON horodaté depuis l'onglet Paramètres.
+- Import d'une sauvegarde JSON : restaure matériaux, paramètres et projets en un clic.
+
 ## [1.6.4] - 2026-03-30
 > Commit : `fix(ci): add contents:write permission for GitHub release creation`
 ### Corrigé
