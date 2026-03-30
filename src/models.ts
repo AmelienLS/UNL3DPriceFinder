@@ -123,11 +123,11 @@ export const DEFAULT_PARAMETERS: Parameters = {
 export const DEFAULT_PRINT_JOB: PrintJob = {
   projectName: "",
   materialId: "",
-  weightGrams: 50,
-  printDurationHours: 3.5,
-  manualWorkHours: 0.5,
-  quantity: 25,
-  customBasePrice: 20,
+  weightGrams: 0,
+  printDurationHours: 0,
+  manualWorkHours: 0,
+  quantity: 1,
+  customBasePrice: 0,
 };
 
 // --- Known densities (g/cm³) by material keyword ---
@@ -143,7 +143,6 @@ const KNOWN_DENSITIES: [string[], number][] = [
   [["hips"], 1.04],
   [["pva"], 1.23],
   [["pp", "polypropyl"], 0.90],
-  [["résine", "resine", "resin"], 1.10],
   [["carbon", "cf"], 1.30],
 ];
 
@@ -253,22 +252,6 @@ export function calculateConsumption(
   const bedMaxW = BED_SIZE_OPTIONS.find((o) => o.value === bedSize)!.maxW;
   const nozzle = material.nozzleTemp;
   const bed = material.bedTemp;
-
-  // If temps are 0 (e.g. resin), use minimal power
-  if (nozzle === 0 && bed === 0) {
-    const avgPowerW = 50; // UV LED + electronics
-    const totalWh = avgPowerW * durationHours;
-    return {
-      bedPower: 0,
-      hotendPower: 0,
-      motorsPower: 10,
-      electronicsPower: 40,
-      avgPowerW,
-      warmupWh: 0,
-      totalWh,
-      costEuros: (totalWh / 1000) * electricityPrice,
-    };
-  }
 
   const bedPower = bedMaxW * pidDuty(bed);
   const hotendMaxW = 30.0 + ((nozzle - 200.0) / 70.0) * 20.0;

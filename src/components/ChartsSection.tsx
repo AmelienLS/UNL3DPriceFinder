@@ -175,6 +175,12 @@ function EditablePrice({
 }
 
 export default function ChartsSection({ result, customBasePrice, quantity, onCustomPriceChange, onQuantityChange }: Props) {
+  // --- Find applicable discount for current quantity ---
+  let currentDiscount = 0;
+  for (const tier of result.tiers) {
+    if (quantity >= tier.quantity) currentDiscount = tier.discount;
+  }
+
   // --- Production cost data (without margin) ---
   const productionData = [
     { name: "Matière", value: result.materialCost },
@@ -186,27 +192,56 @@ export default function ChartsSection({ result, customBasePrice, quantity, onCus
 
   const productionTotal = productionData.reduce((s, d) => s + d.value, 0);
 
-  // --- Selling price data (with margin) ---
-  const sellingData = [
-    ...productionData,
-    { name: "Marge", value: result.marginAmount },
-  ].filter((d) => d.value > 0);
+  // --- Selling price data: apply tier discount to recommended price ---
+  const recoUnitWithDiscount = result.recommendedUnitPrice * (1 - currentDiscount);
+  const recoMarginWithDiscount = recoUnitWithDiscount - productionTotal;
+  const recoIsLoss = recoMarginWithDiscount <= 0;
+
+  const sellingData = recoIsLoss
+    ? [
+        ...productionData.map((d) => ({
+          ...d,
+          value: d.value * (recoUnitWithDiscount / productionTotal),
+        })),
+        { name: "Perte", value: 0 },
+      ].filter((d) => d.value > 0)
+    : [
+        ...productionData,
+        { name: "Marge", value: recoMarginWithDiscount },
+      ].filter((d) => d.value > 0);
 
   const sellingTotal = sellingData.reduce((s, d) => s + d.value, 0);
 
-  // --- Custom price data (with custom profit) ---
-  const customProfit = Math.max(0, result.unitProfit);
-  const customData = [
-    ...productionData,
-    ...(customProfit > 0 ? [{ name: "Bénéfice", value: customProfit }] : []),
-  ];
+  // --- Custom price data: apply tier discount ---
+  const customUnitWithDiscount = customBasePrice * (1 - currentDiscount);
+  const customProfit = customUnitWithDiscount - productionTotal;
+  const customIsLoss = customProfit <= 0;
+
+  const customData = customIsLoss
+    ? [
+        ...productionData.map((d) => ({
+          ...d,
+          value: d.value * (customUnitWithDiscount / productionTotal),
+        })),
+        { name: "Perte", value: 0 },
+      ].filter((d) => d.value > 0)
+    : [
+        ...productionData,
+        { name: "Bénéfice", value: customProfit },
+      ].filter((d) => d.value > 0);
 
   const customTotal = customData.reduce((s, d) => s + d.value, 0);
 
-  const CUSTOM_COLORS = [
-    ...PRODUCTION_COLORS.slice(0, productionData.length),
-    "#30b0c7", // teal - custom profit
-  ];
+  const SELLING_COLORS_DYNAMIC = recoIsLoss
+    ? PRODUCTION_COLORS.slice(0, sellingData.length)
+    : SELLING_COLORS;
+
+  const CUSTOM_COLORS = customIsLoss
+    ? PRODUCTION_COLORS.slice(0, customData.length)
+    : [
+        ...PRODUCTION_COLORS.slice(0, productionData.length),
+        "#30b0c7", // teal - custom profit
+      ];
 
   // --- Merged data (1–150): continuous lines + bars at tier points ---
   function getDiscountAtQty(qty: number): number {
@@ -264,13 +299,19 @@ export default function ChartsSection({ result, customBasePrice, quantity, onCus
           </div>
         </div>
         <div className="charts-pie-col">
-          <div className="card-header">Prix recommandé</div>
-          <div className="card">
+          <div className="card-header">
+            Prix recommandé
+            {currentDiscount > 0 && (
+              <span className="card-header-badge">−{(currentDiscount * 100).toFixed(0)}%</span>
+            )}
+          </div>
+          <div className={`card${recoIsLoss ? " card-loss" : ""}`}>
+            {recoIsLoss && <div className="loss-banner">Vente à perte</div>}
             <CostPie
               data={sellingData}
-              colors={SELLING_COLORS}
+              colors={SELLING_COLORS_DYNAMIC}
               total={sellingTotal}
-              centerLabel="Prix reco."
+              centerLabel={recoIsLoss ? "À perte" : "Prix reco."}
               isDark={isDark}
               textColor={textColor}
               gridColor={gridColor}
@@ -278,13 +319,19 @@ export default function ChartsSection({ result, customBasePrice, quantity, onCus
           </div>
         </div>
         <div className="charts-pie-col">
-          <div className="card-header">Prix personnalisé</div>
-          <div className="card">
+          <div className="card-header">
+            Prix personnalisé
+            {currentDiscount > 0 && (
+              <span className="card-header-badge">−{(currentDiscount * 100).toFixed(0)}%</span>
+            )}
+          </div>
+          <div className={`card${customIsLoss ? " card-loss" : ""}`}>
+            {customIsLoss && <div className="loss-banner">Vente à perte</div>}
             <CostPie
               data={customData}
               colors={CUSTOM_COLORS}
               total={customTotal}
-              centerLabel="Prix perso."
+              centerLabel={customIsLoss ? "À perte" : "Prix perso."}
               isDark={isDark}
               textColor={textColor}
               gridColor={gridColor}
