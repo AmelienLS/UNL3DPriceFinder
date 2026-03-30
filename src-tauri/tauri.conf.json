@@ -1,7 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2/main/tauri-conf.schema.json",
-  "productName": "UNL3D Prix",
-  "identifier": "com.unl3d.prix",
+  "productName": "UNL3D Pricer",
+  "identifier": "com.unl3d.pricer",
+  "version": "1.9.4",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -11,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "UNL3D Prix",
+        "title": "UNL3D Pricer",
         "width": 960,
         "height": 720,
         "minWidth": 800,

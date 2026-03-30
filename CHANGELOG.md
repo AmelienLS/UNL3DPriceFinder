@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [1.9.4] - 2026-03-30
+> Commit : `fix(configs): fixed an issue where the .exe would have the wrong version`
+### Modifié
+- réintroduction de la version dans tauri.conf.json afin d'avoir un .exe a la bonne version.
+
 ## [1.9.3] - 2026-03-30
 > Commit : `feat(parameters): responsive multi-column layout`
 ### Modifié

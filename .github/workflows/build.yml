@@ -84,7 +84,7 @@ jobs:
       - name: Upload DMG as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: UNL3D-Prix-${{ steps.version.outputs.version }}-macos
+          name: UNL3D-Pricer-${{ steps.version.outputs.version }}-macos
           path: "src-tauri/target/release/bundle/dmg/*.dmg"
           retention-days: 30
 
@@ -141,7 +141,7 @@ jobs:
       - name: Upload EXE as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: UNL3D-Prix-${{ steps.version.outputs.version }}-windows
+          name: UNL3D-Pricer-${{ steps.version.outputs.version }}-windows
           path: "src-tauri/target/release/bundle/nsis/*.exe"
           retention-days: 30
 
