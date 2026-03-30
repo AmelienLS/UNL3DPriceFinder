@@ -126,6 +126,11 @@ body {
   gap: 2px;
 }
 
+.sidebar-item,
+.sidebar-section-title {
+  -webkit-app-region: no-drag;
+}
+
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -624,7 +629,6 @@ select {
   height: var(--titlebar-height);
   -webkit-app-region: drag;
   z-index: 50;
-  pointer-events: none;
 }
 
 /* === Tab Bar === */
