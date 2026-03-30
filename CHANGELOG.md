@@ -1,5 +1,10 @@
 # Journal des modifications
 
+## [1.6.4] - 2026-03-30
+> Commit : `fix(ci): add contents:write permission for GitHub release creation`
+### Corrigé
+- Ajout de `permissions: contents: write` dans le workflow pour autoriser la création de releases GitHub (erreur "Resource not accessible by integration").
+
 ## [1.6.3] - 2026-03-30
 > Commit : `fix(icons): regenerate icon.ico with valid RGBA PNG format`
 ### Corrigé
