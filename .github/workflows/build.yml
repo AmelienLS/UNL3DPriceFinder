@@ -64,7 +64,7 @@ jobs:
 
       - name: Ad-hoc sign the .app
         run: |
-          APP="src-tauri/target/release/bundle/macos/UNL3D Prix.app"
+          APP="src-tauri/target/release/bundle/macos/UNL3DPricer.app"
           xattr -cr "$APP"
           codesign --force --deep --sign - "$APP"
 
@@ -76,10 +76,10 @@ jobs:
 
       - name: Recreate signed DMG
         run: |
-          APP="src-tauri/target/release/bundle/macos/UNL3D Prix.app"
-          DMG="src-tauri/target/release/bundle/dmg/UNL3D Prix_${{ steps.version.outputs.version }}_aarch64.dmg"
+          APP="src-tauri/target/release/bundle/macos/UNL3DPricer.app"
+          DMG="src-tauri/target/release/bundle/dmg/UNL3DPricer_${{ steps.version.outputs.version }}_aarch64.dmg"
           rm -f src-tauri/target/release/bundle/dmg/*.dmg
-          hdiutil create -volname "UNL3D Prix" -srcfolder "$APP" -ov -format UDZO "$DMG"
+          hdiutil create -volname "UNL3DPricer" -srcfolder "$APP" -ov -format UDZO "$DMG"
 
       - name: Upload DMG as artifact
         uses: actions/upload-artifact@v4
