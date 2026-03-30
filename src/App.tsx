@@ -119,6 +119,9 @@ export default function App() {
               setParameters={setParameters}
             />
           )}
+          <footer className="page-footer">
+            Amélien LARADE — UNL3D Prix v1.6.0
+          </footer>
         </main>
       </div>
     </>

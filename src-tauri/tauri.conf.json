@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2/main/tauri-conf.schema.json",
   "productName": "UNL3D Prix",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "identifier": "com.unl3d.prix",
   "build": {
     "beforeDevCommand": "npm run dev",

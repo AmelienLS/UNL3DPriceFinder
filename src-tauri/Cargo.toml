@@ -1,8 +1,8 @@
 [package]
 name = "unl3d-prix"
-version = "1.0.0"
+version = "1.6.0"
 description = "Calculateur de prix d'impression 3D"
-authors = ["UNL3D"]
+authors = ["Amélien LARADE"]
 edition = "2021"
 
 [lib]

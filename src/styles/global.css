@@ -771,6 +771,16 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+/* === Page Footer === */
+
+.page-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 24px 16px 16px;
+  letter-spacing: 0.01em;
+}
+
 /* === Save FAB === */
 
 .save-fab {
