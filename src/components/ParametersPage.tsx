@@ -5,6 +5,8 @@ import {
   DEFAULT_CHART_COLORS, exportData, importData,
 } from "../models";
 
+import NumberInput from "./NumberInput";
+
 const COLOR_LABELS: { key: keyof ChartColors; label: string }[] = [
   { key: "material",    label: "Matière première" },
   { key: "electricity", label: "Électricité" },
@@ -14,7 +16,6 @@ const COLOR_LABELS: { key: keyof ChartColors; label: string }[] = [
   { key: "margin",      label: "Marge" },
   { key: "vatOut",      label: "TVA vente" },
 ];
-import NumberInput from "./NumberInput";
 
 interface Props {
   parameters: Parameters;
@@ -91,157 +92,183 @@ export default function ParametersPage({ parameters: p, setParameters, materials
   }
 
   return (
-    <div className="page">
+    <div className="page page-wide">
       <h1 className="page-title">Paramètres</h1>
 
-      <div className="card-header">Données</div>
-      <div className="card">
-        <div className="card-row">
-          <span className="card-row-label">Exporter toutes les données</span>
-          <button className="btn btn-secondary btn-sm" onClick={() => exportData(materials, p, projects)}>
-            Exporter JSON
-          </button>
+      <div className="params-grid">
+        {/* Données */}
+        <div className="params-section">
+          <div className="card-header">Données</div>
+          <div className="card">
+            <div className="card-row">
+              <span className="card-row-label">Exporter toutes les données</span>
+              <button className="btn btn-secondary btn-sm" onClick={() => exportData(materials, p, projects)}>
+                Exporter JSON
+              </button>
+            </div>
+            <div className="card-row">
+              <span className="card-row-label">Importer une sauvegarde</span>
+              <button className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()}>
+                Importer JSON
+              </button>
+              <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImport} />
+            </div>
+          </div>
         </div>
-        <div className="card-row">
-          <span className="card-row-label">Importer une sauvegarde</span>
-          <button className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()}>
-            Importer JSON
-          </button>
-          <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImport} />
+
+        {/* Électricité */}
+        <div className="params-section">
+          <div className="card-header">Électricité</div>
+          <div className="card">
+            <Field label="Coût électricité" value={p.electricityCost} onChange={(v) => set({ electricityCost: v })} unit="€/kWh" />
+          </div>
         </div>
-      </div>
 
-      <div className="card-header">Électricité</div>
-      <div className="card">
-        <Field label="Coût électricité" value={p.electricityCost} onChange={(v) => set({ electricityCost: v })} unit="€/kWh" />
-      </div>
-
-      <div className="card-header">Imprimante</div>
-      <div className="card">
-        <div className="card-row">
-          <span className="card-row-label">Taille du plateau</span>
-          <select
-            value={p.bedSize}
-            onChange={(e) => set({ bedSize: e.target.value as BedSize })}
-          >
-            {BED_SIZE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="card-row">
-          <span className="card-row-label">Puissance max plateau</span>
-          <span className="card-row-value">
-            {BED_SIZE_OPTIONS.find((o) => o.value === p.bedSize)?.maxW ?? 0} W
-          </span>
-        </div>
-      </div>
-
-      <div className="card-header">Main d'œuvre</div>
-      <div className="card">
-        <Field label="Taux horaire" value={p.laborRate} onChange={(v) => set({ laborRate: v })} unit="€/h" />
-      </div>
-
-      <div className="card-header">TVA</div>
-      <div className="card">
-        <div className="card-row">
-          <span className="card-row-label">
-            Assujetti à la TVA
-            <span style={{ display: "block", fontSize: 11, color: "var(--text-tertiary)", fontWeight: 400 }}>
-              {p.vatRegistered
-                ? "TVA achats récupérée · TVA vente facturée au client"
-                : "TVA achats = coût · Pas de TVA facturée au client"}
-            </span>
-          </span>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={p.vatRegistered}
-              onChange={(e) => set({ vatRegistered: e.target.checked })}
-            />
-            <span className="toggle-slider" />
-          </label>
-        </div>
-        <Field label="Taux de TVA" value={p.vatRate} onChange={(v) => set({ vatRate: v })} unit="%" isPercent />
-      </div>
-
-      <div className="card-header">Marges & Frais</div>
-      <div className="card">
-        <Field label="Taux d'échec moyen" value={p.failureRate} onChange={(v) => set({ failureRate: v })} unit="%" isPercent />
-        <Field label="Marge bénéficiaire" value={p.profitMargin} onChange={(v) => set({ profitMargin: v })} unit="%" isPercent />
-      </div>
-
-      <div className="card-header">Couleurs des graphiques</div>
-      <div className="card">
-        {COLOR_LABELS.map(({ key, label }) => (
-          <div className="card-row" key={key}>
-            <span className="card-row-label">{label}</span>
-            <div className="input-group">
-              <input
-                type="color"
-                value={p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
-                onChange={(e) => set({ chartColors: { ...(p.chartColors ?? DEFAULT_CHART_COLORS), [key]: e.target.value } })}
-                style={{ width: 36, height: 28, padding: 2, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer" }}
-              />
-              <span className="input-unit" style={{ fontFamily: "monospace", fontSize: 12 }}>
-                {p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
+        {/* Imprimante */}
+        <div className="params-section">
+          <div className="card-header">Imprimante</div>
+          <div className="card">
+            <div className="card-row">
+              <span className="card-row-label">Taille du plateau</span>
+              <select
+                value={p.bedSize}
+                onChange={(e) => set({ bedSize: e.target.value as BedSize })}
+              >
+                {BED_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="card-row">
+              <span className="card-row-label">Puissance max plateau</span>
+              <span className="card-row-value">
+                {BED_SIZE_OPTIONS.find((o) => o.value === p.bedSize)?.maxW ?? 0} W
               </span>
             </div>
           </div>
-        ))}
-        <div style={{ padding: "8px 16px" }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => set({ chartColors: { ...DEFAULT_CHART_COLORS } })}
-          >
-            Réinitialiser les couleurs
-          </button>
         </div>
-      </div>
 
-      <div className="card-header">Paliers dégressifs</div>
-      <div className="card">
-        <Field
-          label="Réduction par palier"
-          value={p.discountStep}
-          onChange={(v) => set({ discountStep: v })}
-          unit="%"
-          isPercent
-          step={1}
-        />
-        <div className="divider" />
-        {p.tierQuantities.map((qty, i) => (
-          <div className="card-row" key={i}>
-            <span className="card-row-label">
-              Palier {i + 1}
-              <span style={{ color: "var(--text-tertiary)", fontSize: 11, marginLeft: 6 }}>
-                (−{(i * p.discountStep * 100).toFixed(0)}%)
+        {/* Main d'œuvre */}
+        <div className="params-section">
+          <div className="card-header">Main d'œuvre</div>
+          <div className="card">
+            <Field label="Taux horaire" value={p.laborRate} onChange={(v) => set({ laborRate: v })} unit="€/h" />
+          </div>
+        </div>
+
+        {/* TVA */}
+        <div className="params-section">
+          <div className="card-header">TVA</div>
+          <div className="card">
+            <div className="card-row">
+              <span className="card-row-label">
+                Assujetti à la TVA
+                <span style={{ display: "block", fontSize: 11, color: "var(--text-tertiary)", fontWeight: 400 }}>
+                  {p.vatRegistered
+                    ? "TVA achats récupérée · TVA vente facturée au client"
+                    : "TVA achats = coût · Pas de TVA facturée au client"}
+                </span>
               </span>
-            </span>
-            <div className="input-group">
-              <NumberInput
-                value={qty}
-                min={1}
-                step={1}
-                onChange={(v) => updateTierQty(i, v)}
-              />
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={p.vatRegistered}
+                  onChange={(e) => set({ vatRegistered: e.target.checked })}
+                />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <Field label="Taux de TVA" value={p.vatRate} onChange={(v) => set({ vatRate: v })} unit="%" isPercent />
+          </div>
+        </div>
+
+        {/* Marges & Frais */}
+        <div className="params-section">
+          <div className="card-header">Marges & Frais</div>
+          <div className="card">
+            <Field label="Taux d'échec moyen" value={p.failureRate} onChange={(v) => set({ failureRate: v })} unit="%" isPercent />
+            <Field label="Marge bénéficiaire" value={p.profitMargin} onChange={(v) => set({ profitMargin: v })} unit="%" isPercent />
+          </div>
+        </div>
+
+        {/* Couleurs des graphiques — full width */}
+        <div className="params-section params-section-full">
+          <div className="card-header">Couleurs des graphiques</div>
+          <div className="card params-colors-grid">
+            {COLOR_LABELS.map(({ key, label }) => (
+              <div className="card-row" key={key}>
+                <span className="card-row-label">{label}</span>
+                <div className="input-group">
+                  <input
+                    type="color"
+                    value={p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
+                    onChange={(e) => set({ chartColors: { ...(p.chartColors ?? DEFAULT_CHART_COLORS), [key]: e.target.value } })}
+                    style={{ width: 36, height: 28, padding: 2, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer" }}
+                  />
+                  <span className="input-unit" style={{ fontFamily: "monospace", fontSize: 12 }}>
+                    {p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <div className="params-colors-reset">
               <button
-                className="btn btn-danger btn-sm"
-                onClick={() => removeTier(i)}
-                disabled={p.tierQuantities.length <= 1}
-                style={{ marginLeft: 6 }}
+                className="btn btn-secondary btn-sm"
+                onClick={() => set({ chartColors: { ...DEFAULT_CHART_COLORS } })}
               >
-                ×
+                Réinitialiser les couleurs
               </button>
             </div>
           </div>
-        ))}
-        <div style={{ padding: "8px 16px" }}>
-          <button className="btn btn-secondary btn-sm" onClick={addTier}>
-            + Ajouter un palier
-          </button>
+        </div>
+
+        {/* Paliers dégressifs — full width */}
+        <div className="params-section params-section-full">
+          <div className="card-header">Paliers dégressifs</div>
+          <div className="card">
+            <Field
+              label="Réduction par palier"
+              value={p.discountStep}
+              onChange={(v) => set({ discountStep: v })}
+              unit="%"
+              isPercent
+              step={1}
+            />
+            <div className="divider" />
+            {p.tierQuantities.map((qty, i) => (
+              <div className="card-row" key={i}>
+                <span className="card-row-label">
+                  Palier {i + 1}
+                  <span style={{ color: "var(--text-tertiary)", fontSize: 11, marginLeft: 6 }}>
+                    (−{(i * p.discountStep * 100).toFixed(0)}%)
+                  </span>
+                </span>
+                <div className="input-group">
+                  <NumberInput
+                    value={qty}
+                    min={1}
+                    step={1}
+                    onChange={(v) => updateTierQty(i, v)}
+                  />
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => removeTier(i)}
+                    disabled={p.tierQuantities.length <= 1}
+                    style={{ marginLeft: 6 }}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div style={{ padding: "8px 16px" }}>
+              <button className="btn btn-secondary btn-sm" onClick={addTier}>
+                + Ajouter un palier
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

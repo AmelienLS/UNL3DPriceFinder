@@ -131,7 +131,7 @@ export default function App() {
             />
           )}
           <footer className="page-footer">
-            Amélien LARADE — UNL3D Prix v{appVersion}
+            CC Amélien LARADE — UNL3D Pricer v{appVersion}
           </footer>
         </main>
       </div>

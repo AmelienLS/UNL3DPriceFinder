@@ -196,6 +196,70 @@ body {
   max-width: none;
 }
 
+/* === Parameters multi-column grid === */
+
+.params-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 24px;
+}
+
+@media (min-width: 860px) {
+  .params-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .params-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.params-section {
+  min-width: 0;
+}
+
+.params-section-full {
+  grid-column: 1 / -1;
+}
+
+/* Colors card: inner grid of color rows */
+.params-colors-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+  .params-colors-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .params-colors-grid .card-row + .card-row {
+    border-top: none;
+  }
+  .params-colors-grid .card-row:nth-child(n+3) {
+    border-top: 0.5px solid var(--separator);
+  }
+}
+
+@media (min-width: 1200px) {
+  .params-colors-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .params-colors-grid .card-row:nth-child(n+3) {
+    border-top: none;
+  }
+  .params-colors-grid .card-row:nth-child(n+5) {
+    border-top: 0.5px solid var(--separator);
+  }
+}
+
+.params-colors-reset {
+  grid-column: 1 / -1;
+  padding: 8px 16px;
+  border-top: 0.5px solid var(--separator);
+}
+
 /* === Two-column calculator layout === */
 
 .calc-layout {

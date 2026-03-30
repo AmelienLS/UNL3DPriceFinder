@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [1.9.3] - 2026-03-30
+> Commit : `feat(parameters): responsive multi-column layout`
+### Modifié
+- La page Paramètres s'affiche sur 2 colonnes à partir de 860 px et 3 colonnes à partir de 1200 px, avec largeurs identiques.
+- Les sections "Couleurs des graphiques" et "Paliers dégressifs" s'étendent toujours sur toute la largeur.
+- La carte "Couleurs des graphiques" organise ses lignes en 2 puis 4 colonnes selon la largeur.
+
 ## [1.9.2] - 2026-03-30
 > Commit : `feat(parameters): add custom chart color pickers`
 ### Ajouté
