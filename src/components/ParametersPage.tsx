@@ -1,9 +1,19 @@
 import { useRef } from "react";
 import {
-  type Parameters, type Material, type SavedProject,
+  type Parameters, type Material, type SavedProject, type ChartColors,
   BED_SIZE_OPTIONS, type BedSize,
-  exportData, importData,
+  DEFAULT_CHART_COLORS, exportData, importData,
 } from "../models";
+
+const COLOR_LABELS: { key: keyof ChartColors; label: string }[] = [
+  { key: "material",    label: "Matière première" },
+  { key: "electricity", label: "Électricité" },
+  { key: "labor",       label: "Main d'œuvre" },
+  { key: "failure",     label: "Taux d'échec" },
+  { key: "vatIn",       label: "TVA (coût)" },
+  { key: "margin",      label: "Marge" },
+  { key: "vatOut",      label: "TVA vente" },
+];
 import NumberInput from "./NumberInput";
 
 interface Props {
@@ -161,6 +171,34 @@ export default function ParametersPage({ parameters: p, setParameters, materials
       <div className="card">
         <Field label="Taux d'échec moyen" value={p.failureRate} onChange={(v) => set({ failureRate: v })} unit="%" isPercent />
         <Field label="Marge bénéficiaire" value={p.profitMargin} onChange={(v) => set({ profitMargin: v })} unit="%" isPercent />
+      </div>
+
+      <div className="card-header">Couleurs des graphiques</div>
+      <div className="card">
+        {COLOR_LABELS.map(({ key, label }) => (
+          <div className="card-row" key={key}>
+            <span className="card-row-label">{label}</span>
+            <div className="input-group">
+              <input
+                type="color"
+                value={p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
+                onChange={(e) => set({ chartColors: { ...(p.chartColors ?? DEFAULT_CHART_COLORS), [key]: e.target.value } })}
+                style={{ width: 36, height: 28, padding: 2, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer" }}
+              />
+              <span className="input-unit" style={{ fontFamily: "monospace", fontSize: 12 }}>
+                {p.chartColors?.[key] ?? DEFAULT_CHART_COLORS[key]}
+              </span>
+            </div>
+          </div>
+        ))}
+        <div style={{ padding: "8px 16px" }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => set({ chartColors: { ...DEFAULT_CHART_COLORS } })}
+          >
+            Réinitialiser les couleurs
+          </button>
+        </div>
       </div>
 
       <div className="card-header">Paliers dégressifs</div>

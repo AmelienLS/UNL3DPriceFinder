@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { type PriceResult } from "../models";
+import { type PriceResult, type ChartColors, DEFAULT_CHART_COLORS } from "../models";
 import {
   PieChart,
   Pie,
@@ -22,30 +22,11 @@ interface Props {
   customBasePrice: number;
   quantity: number;
   vatRate: number;
+  chartColors?: ChartColors;
   onCustomPriceChange: (v: number) => void;
   onQuantityChange: (v: number) => void;
 }
 
-// Unified color palette — same order for all price pies
-const COLORS = {
-  material:    "#007aff", // blue
-  electricity: "#ff9500", // orange
-  labor:       "#34c759", // green
-  failure:     "#ff3b30", // red
-  vatIn:       "#af52de", // purple - TVA (coût)
-  margin:      "#5856d6", // indigo - Marge
-  vatOut:      "#ff6b9d", // pink   - TVA vente
-};
-
-const PRODUCTION_COLORS = [
-  COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn,
-];
-
-// Selling & Custom use the same order: costs + marge + TVA vente
-const PRICE_COLORS_BASE = [
-  COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn,
-  COLORS.margin, COLORS.vatOut,
-];
 
 function euro(n: number): string {
   return `${n.toFixed(2)} €`;
@@ -179,7 +160,10 @@ function EditablePrice({
   );
 }
 
-export default function ChartsSection({ result, customBasePrice, quantity, vatRate, onCustomPriceChange, onQuantityChange }: Props) {
+export default function ChartsSection({ result, customBasePrice, quantity, vatRate, chartColors: userColors, onCustomPriceChange, onQuantityChange }: Props) {
+  const COLORS = { ...DEFAULT_CHART_COLORS, ...userColors };
+  const PRODUCTION_COLORS = [COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn];
+  const PRICE_COLORS_BASE  = [COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn, COLORS.margin, COLORS.vatOut];
   // --- Find applicable discount for current quantity ---
   let currentDiscount = 0;
   for (const tier of result.tiers) {

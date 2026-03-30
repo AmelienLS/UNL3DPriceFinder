@@ -20,16 +20,37 @@ export const BED_SIZE_OPTIONS: { value: BedSize; label: string; maxW: number }[]
   { value: "xlarge", label: "Très grand (400 mm+, ex: Ender 5 Max)",  maxW: 450 },
 ];
 
+export interface ChartColors {
+  material:    string;
+  electricity: string;
+  labor:       string;
+  failure:     string;
+  vatIn:       string;
+  margin:      string;
+  vatOut:      string;
+}
+
+export const DEFAULT_CHART_COLORS: ChartColors = {
+  material:    "#007aff",
+  electricity: "#ff9500",
+  labor:       "#34c759",
+  failure:     "#ff3b30",
+  vatIn:       "#af52de",
+  margin:      "#5856d6",
+  vatOut:      "#ff6b9d",
+};
+
 export interface Parameters {
   electricityCost: number;      // €/kWh
   laborRate: number;            // €/h
   failureRate: number;          // 0-1
   vatRate: number;              // 0-1
-  vatRegistered: boolean;       // true = assujetti TVA (récupère TVA achats, facture TVA vente)
+  vatRegistered: boolean;
   profitMargin: number;         // 0-1
   bedSize: BedSize;
-  tierQuantities: number[];     // ex: [1, 5, 10, 25, 50, 100, 150]
-  discountStep: number;         // 0-1 (ex: 0.05 = 5% par palier)
+  tierQuantities: number[];
+  discountStep: number;         // 0-1
+  chartColors: ChartColors;
 }
 
 export interface PrintJob {
@@ -126,6 +147,7 @@ export const DEFAULT_PARAMETERS: Parameters = {
   bedSize: "medium",
   tierQuantities: [1, 5, 10, 25, 50, 100, 150],
   discountStep: 0.05,
+  chartColors: { ...DEFAULT_CHART_COLORS },
 };
 
 export const DEFAULT_PRINT_JOB: PrintJob = {

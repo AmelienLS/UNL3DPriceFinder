@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [1.9.2] - 2026-03-30
+> Commit : `feat(parameters): add custom chart color pickers`
+### Ajouté
+- Section "Couleurs des graphiques" dans les Paramètres : 7 color pickers pour personnaliser chaque couleur (matière, électricité, main d'œuvre, taux d'échec, TVA coût, marge, TVA vente).
+- Bouton "Réinitialiser les couleurs" pour revenir aux couleurs par défaut.
+- Les couleurs choisies sont sauvegardées dans `chartColors` (déjà présent dans `Parameters`) et persistées en localStorage.
+
 ## [1.9.1] - 2026-03-30
 > Commit : `refactor(charts): unify colors and slice names across price pies`
 ### Modifié

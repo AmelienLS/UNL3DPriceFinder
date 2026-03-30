@@ -360,6 +360,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
           customBasePrice={job.customBasePrice}
           quantity={job.quantity}
           vatRate={parameters.vatRate}
+          chartColors={parameters.chartColors}
           onCustomPriceChange={(v) => updateJob({ customBasePrice: v })}
           onQuantityChange={(v) => updateJob({ quantity: v })}
         />
