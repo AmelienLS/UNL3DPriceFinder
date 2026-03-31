@@ -53,6 +53,22 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
     setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   }
 
+  function handleDuplicate(project: SavedProject) {
+    const copy: SavedProject = {
+      ...project,
+      id: crypto.randomUUID(),
+      projectName: `${project.projectName} (copie)`,
+      date: new Date().toISOString(),
+      status: "draft",
+    };
+    setProjects((prev) => {
+      const idx = prev.findIndex((p) => p.id === project.id);
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+  }
+
   function handleExportCSV() {
     const header = "Nom;N° Objet;Prix unitaire;Client;Date;Matériau;Statut";
     const rows = filtered.map(
@@ -143,6 +159,13 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
                         title="Restaurer dans le calculateur"
                       >
                         Restaurer
+                      </button>{" "}
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleDuplicate(p)}
+                        title="Dupliquer"
+                      >
+                        Dupliquer
                       </button>{" "}
                       <button
                         className="btn btn-danger btn-sm"

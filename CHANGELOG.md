@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.11.0] - 2026-03-31
+> Commit : `feat(projects): add project duplication`
+### Ajouté
+- Bouton "Dupliquer" sur chaque ligne du tableau des projets.
+- La copie est insérée juste en dessous de l'original, avec un nouvel ID, la date du jour, le nom suffixé de " (copie)" et le statut "Brouillon".
+
 ## [1.10.0] - 2026-03-31
 > Commit : `feat(projects): add project status with filter`
 ### Ajouté
