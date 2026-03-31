@@ -102,6 +102,7 @@ export default function App() {
               printJob={printJob}
               updateJob={updateJob}
               onSaveProject={handleSaveProject}
+              onMarginChange={(v) => setParameters((prev) => ({ ...prev, profitMargin: v }))}
             />
           )}
           {page === "projects" && (

@@ -11,6 +11,7 @@ interface Props {
   printJob: PrintJob;
   updateJob: (patch: Partial<PrintJob>) => void;
   onSaveProject: (extra: { objectNumber: string; client: string; unitPrice: number }) => void;
+  onMarginChange: (v: number) => void;
 }
 
 function fmt(n: number, decimals = 2): string {
@@ -25,7 +26,7 @@ function pct(n: number): string {
   return `${fmt(n * 100, 1)} %`;
 }
 
-export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject }: Props) {
+export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject, onMarginChange }: Props) {
   const [tab, setTab] = useState<Tab>("calc");
   const [showSave, setShowSave] = useState(false);
   const [saveFields, setSaveFields] = useState({ objectNumber: "", client: "" });
@@ -165,7 +166,19 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
             <div className="card-header">Prix de vente recommandé</div>
             <div className="card">
               <div className="card-row">
-                <span className="card-row-label">Marge bénéficiaire ({pct(result.profitMarginRate)})</span>
+                <span className="card-row-label">Marge bénéficiaire</span>
+                <div className="input-group">
+                  <NumberInput
+                    value={parameters.profitMargin * 100}
+                    step={1}
+                    min={0}
+                    onChange={(v) => onMarginChange(v / 100)}
+                  />
+                  <span className="input-unit">%</span>
+                </div>
+              </div>
+              <div className="card-row">
+                <span className="card-row-label">Montant de la marge</span>
                 <span className="card-row-value">{euro(result.marginAmount)}</span>
               </div>
               <div className="divider" />

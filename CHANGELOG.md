@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.9.5] - 2026-03-31
+> Commit : `feat(calculator): add editable profit margin field`
+### Ajouté
+- Champ de saisie du taux de marge directement dans la section "Prix de vente recommandé" du calculateur.
+- La valeur est synchronisée avec les Paramètres (persistée en localStorage) et se répercute immédiatement sur le calcul.
+
 
 ## [1.9.4] - 2026-03-30
 > Commit : `fix(configs): fixed an issue where the .exe would have the wrong version`
