@@ -204,7 +204,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 </div>
               )}
               <div className="card-row">
-                <span className="card-row-label">Prix unitaire {result.vatRegistered ? "TTC" : "client"}</span>
+                <span className="card-row-label">Prix unitaire {result.vatRegistered ? "TTC" : "HT"}</span>
                 <span className="card-row-value accent">{euro(result.recommendedUnitPriceTTC)}</span>
               </div>
               <div className="divider" />
@@ -225,7 +225,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
             <div className="card">
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix {result.vatRegistered ? "TTC" : "client"} unitaire
+                  Prix {result.vatRegistered ? "TTC" : "HT"} unitaire
                 </span>
                 <div className="input-group">
                   <NumberInput
@@ -263,13 +263,13 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
               </div>
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix unitaire {result.vatRegistered ? "TTC" : "client"} après remise
+                  Prix unitaire {result.vatRegistered ? "TTC" : "HT"} après remise
                 </span>
                 <span className="card-row-value strong">{euro(result.customUnitPriceTTC)}</span>
               </div>
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix total {result.vatRegistered ? "TTC" : "client"} (×{job.quantity})
+                  Prix total {result.vatRegistered ? "TTC" : "HT"} (×{job.quantity})
                 </span>
                 <span className="card-row-value accent">{euro(result.customTotalPriceTTC)}</span>
               </div>
@@ -348,7 +348,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
             </div>
 
             {/* --- Degressive Tiers --- */}
-            <div className="card-header">Paliers dégressifs</div>
+            <div className="card-header">Tarifs dégressifs</div>
             <div className="card">
               <table className="data-table">
                 <thead>
@@ -423,7 +423,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 />
               </div>
               <div className="modal-field">
-                <label>Prix unitaire {result.vatRegistered ? "TTC" : "client"} (€)</label>
+                <label>Prix unitaire {result.vatRegistered ? "TTC" : "HT"} (€)</label>
                 <input
                   type="text"
                   value={euro(result.customUnitPriceTTC)}

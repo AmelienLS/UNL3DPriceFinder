@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.14.1] - 2026-03-31
+> Commit : `fix(ux): clarify VAT labels and unify degressive tier heading`
+### Modifié
+- Label "client" remplacé par "HT" dans tous les contextes non-assujetti TVA (prix recommandé, tarification personnalisée, modale de sauvegarde) — plus précis et standard.
+- Titre de section "Paliers dégressifs" renommé en "Tarifs dégressifs" dans le calculateur pour s'aligner avec les graphiques.
+
 ## [1.14.0] - 2026-03-31
 > Commit : `feat(ux): add confirmation modal before deleting projects and materials`
 ### Ajouté
