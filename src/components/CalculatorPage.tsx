@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Parameters, type PrintJob, type PriceResult, type Material, calculate } from "../models";
-import { euro, pct, closestTierQty } from "../utils/formatting";
+import { fmt, euro, pct, closestTierQty } from "../utils/formatting";
 import NumberInput from "./NumberInput";
 import ChartsSection from "./ChartsSection";
 
@@ -20,7 +20,10 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
   const [tab, setTab] = useState<Tab>("calc");
   const [showSave, setShowSave] = useState(false);
   const [saveFields, setSaveFields] = useState({ objectNumber: "", client: "" });
-  const material = materials.find((m) => m.id === job.materialId) ?? materials[0];
+  const material = useMemo(
+    () => materials.find((m) => m.id === job.materialId) ?? materials[0],
+    [materials, job.materialId]
+  );
 
   // ⌘S — open save modal (triggered from App)
   useEffect(() => {

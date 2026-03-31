@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.13.4] - 2026-03-31
+> Commit : `perf(charts): memoize colors, mergedData, tierZones and material lookup`
+### Modifié
+- `ChartsSection` : `COLORS`/`PRODUCTION_COLORS`/`PRICE_COLORS_BASE`, `mergedData` (150 entrées) et `tierZones` sont désormais dans des `useMemo` avec les bonnes dépendances — évite de les recalculer à chaque frappe clavier.
+- `CalculatorPage` : `material` est memoïzé sur `[materials, job.materialId]`.
+
 ## [1.13.3] - 2026-03-31
 > Commit : `refactor(utils): extract formatting helpers to utils/formatting.ts`
 ### Modifié
