@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Parameters, type PrintJob, type PriceResult, type Material, calculate } from "../models";
+import { euro, pct, closestTierQty } from "../utils/formatting";
 import NumberInput from "./NumberInput";
 import ChartsSection from "./ChartsSection";
 
@@ -13,18 +14,6 @@ interface Props {
   onSaveProject: (extra: { objectNumber: string; client: string; unitPrice: number }) => void;
   onMarginChange: (v: number) => void;
   saveTrigger: number;
-}
-
-function fmt(n: number, decimals = 2): string {
-  return n.toFixed(decimals);
-}
-
-function euro(n: number): string {
-  return `${fmt(n)} €`;
-}
-
-function pct(n: number): string {
-  return `${fmt(n * 100, 1)} %`;
 }
 
 export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject, onMarginChange, saveTrigger }: Props) {
@@ -474,10 +463,3 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
   );
 }
 
-function closestTierQty(quantity: number, tiers: number[]): number {
-  let best = tiers[0];
-  for (const t of tiers) {
-    if (quantity >= t) best = t;
-  }
-  return best;
-}

@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.13.3] - 2026-03-31
+> Commit : `refactor(utils): extract formatting helpers to utils/formatting.ts`
+### Modifié
+- Création de `src/utils/formatting.ts` avec `fmt`, `euro`, `pct`, `closestTierQty`.
+- `CalculatorPage.tsx` et `ChartsSection.tsx` importent désormais ces fonctions depuis le module partagé — plus de duplication.
+
 ## [1.13.2] - 2026-03-31
 > Commit : `fix(storage): add try/catch to all localStorage save functions`
 ### Corrigé

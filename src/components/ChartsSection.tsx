@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { euro, pct, closestTierQty } from "../utils/formatting";
 import { type PriceResult, type ChartColors, DEFAULT_CHART_COLORS } from "../models";
 import {
   PieChart,
@@ -28,13 +29,6 @@ interface Props {
 }
 
 
-function euro(n: number): string {
-  return `${n.toFixed(2)} €`;
-}
-
-function pct(n: number): string {
-  return `${(n * 100).toFixed(1)} %`;
-}
 
 function CostPie({
   data,
