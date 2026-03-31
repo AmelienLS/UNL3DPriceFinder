@@ -1,4 +1,9 @@
 # Journal des modifications
+## [1.13.1] - 2026-03-31
+> Commit : `fix(shortcuts): use e.code for digit keys to support AZERTY layout`
+### Corrigé
+- Les raccourcis `⌘1–4` utilisent désormais `e.code` (`Digit1`–`Digit4`) au lieu de `e.key`, ce qui les rend fonctionnels sur les claviers ISO français (AZERTY).
+
 ## [1.13.0] - 2026-03-31
 > Commit : `feat(shortcuts): add keyboard navigation and quick save`
 ### Ajouté
