@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { type Parameters, type PrintJob, type PriceResult, type Material, calculate } from "../models";
 import NumberInput from "./NumberInput";
 import ChartsSection from "./ChartsSection";
@@ -12,6 +12,7 @@ interface Props {
   updateJob: (patch: Partial<PrintJob>) => void;
   onSaveProject: (extra: { objectNumber: string; client: string; unitPrice: number }) => void;
   onMarginChange: (v: number) => void;
+  saveTrigger: number;
 }
 
 function fmt(n: number, decimals = 2): string {
@@ -26,11 +27,29 @@ function pct(n: number): string {
   return `${fmt(n * 100, 1)} %`;
 }
 
-export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject, onMarginChange }: Props) {
+export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject, onMarginChange, saveTrigger }: Props) {
   const [tab, setTab] = useState<Tab>("calc");
   const [showSave, setShowSave] = useState(false);
   const [saveFields, setSaveFields] = useState({ objectNumber: "", client: "" });
   const material = materials.find((m) => m.id === job.materialId) ?? materials[0];
+
+  // ⌘S — open save modal (triggered from App)
+  useEffect(() => {
+    if (saveTrigger === 0) return;
+    setSaveFields({ objectNumber: job.projectName, client: "" });
+    setShowSave(true);
+  }, [saveTrigger]);
+
+  // ⌘← / ⌘→ — switch tabs
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.metaKey && !e.ctrlKey) return;
+      if (e.key === "ArrowLeft")  { e.preventDefault(); setTab("calc"); }
+      if (e.key === "ArrowRight") { e.preventDefault(); setTab("charts"); }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const result: PriceResult | null = useMemo(() => {
     if (!material) return null;

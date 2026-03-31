@@ -1,4 +1,11 @@
 # Journal des modifications
+## [1.13.0] - 2026-03-31
+> Commit : `feat(shortcuts): add keyboard navigation and quick save`
+### Ajouté
+- `⌘1` / `⌘2` / `⌘3` / `⌘4` : navigation directe entre Calculateur, Projets, Matériaux, Paramètres.
+- `⌘S` : ouvre la modale de sauvegarde rapide depuis n'importe quelle page (bascule automatiquement sur le Calculateur).
+- `⌘←` / `⌘→` : bascule entre les onglets Calcul et Graphiques dans le Calculateur.
+
 ## [1.12.0] - 2026-03-31
 > Commit : `feat(projects): add sortable columns`
 ### Ajouté

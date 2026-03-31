@@ -29,6 +29,8 @@ const NAV_ITEMS: { id: Page; label: string; icon: string }[] = [
   { id: "parameters", label: "Paramètres", icon: "⚙" },
 ];
 
+const PAGE_CODES: Record<string, Page> = { "Digit1": "calculator", "Digit2": "projects", "Digit3": "materials", "Digit4": "parameters" };
+
 export default function App() {
   const [page, setPage] = useState<Page>("calculator");
   const [materials, setMaterials] = useState<Material[]>(loadMaterials);
@@ -36,12 +38,29 @@ export default function App() {
   const [printJob, setPrintJob] = useState<PrintJob>(loadPrintJob);
   const [projects, setProjects] = useState<SavedProject[]>(loadProjects);
   const [appVersion, setAppVersion] = useState<string>("");
+  const [saveTrigger, setSaveTrigger] = useState(0);
 
   useEffect(() => { getVersion().then(setAppVersion).catch(() => setAppVersion(pkgVersion)); }, []);
   useEffect(() => saveMaterials(materials), [materials]);
   useEffect(() => saveParameters(parameters), [parameters]);
   useEffect(() => savePrintJob(printJob), [printJob]);
   useEffect(() => saveProjects(projects), [projects]);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.metaKey && !e.ctrlKey) return;
+      if (PAGE_CODES[e.code]) {
+        e.preventDefault();
+        setPage(PAGE_CODES[e.code]);
+      } else if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        setPage("calculator");
+        setSaveTrigger((n) => n + 1);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const updateJob = useCallback(
     (patch: Partial<PrintJob>) => setPrintJob((prev) => ({ ...prev, ...patch })),
@@ -104,6 +123,7 @@ export default function App() {
               updateJob={updateJob}
               onSaveProject={handleSaveProject}
               onMarginChange={(v) => setParameters((prev) => ({ ...prev, profitMargin: v }))}
+              saveTrigger={saveTrigger}
             />
           )}
           {page === "projects" && (
