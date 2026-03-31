@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.14.3] - 2026-03-31
+> Commit : `fix(ux): explain locked price field in save modal`
+### Modifié
+- Ajout d'un texte d'aide sous le prix verrouillé dans la modale de sauvegarde — indique comment le modifier.
+- Suppression du `style={{ opacity: 0.6 }}` redondant (le `disabled` natif gère l'apparence).
+
 ## [1.14.2] - 2026-03-31
 > Commit : `fix(ux): show keyboard shortcut hints in sidebar and update nav icons`
 ### Modifié

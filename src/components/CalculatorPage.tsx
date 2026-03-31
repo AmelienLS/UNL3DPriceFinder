@@ -428,8 +428,10 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                   type="text"
                   value={euro(result.customUnitPriceTTC)}
                   disabled
-                  style={{ opacity: 0.6 }}
                 />
+                <p style={{ fontSize: 11, color: "var(--text-tertiary)", margin: "4px 0 0" }}>
+                  Pour modifier ce prix, fermez cette fenêtre et ajustez la tarification personnalisée.
+                </p>
               </div>
               <div className="modal-field">
                 <label>Client</label>
