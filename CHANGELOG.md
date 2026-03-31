@@ -1,4 +1,44 @@
 # Journal des modifications
+## [1.14.3] - 2026-03-31
+> Commit : `fix(ux): explain locked price field in save modal`
+### Modifié
+- Ajout d'un texte d'aide sous le prix verrouillé dans la modale de sauvegarde — indique comment le modifier.
+- Suppression du `style={{ opacity: 0.6 }}` redondant (le `disabled` natif gère l'apparence).
+
+## [1.14.2] - 2026-03-31
+> Commit : `fix(ux): show keyboard shortcut hints in sidebar and update nav icons`
+### Modifié
+- Icônes de navigation remplacées par des symboles sémantiques (∑ calculateur, ≡ projets, ⬡ matériaux, ⚙ paramètres).
+- Raccourcis ⌘1–4 affichés discrètement à droite de chaque item de la sidebar — visibles mais non intrusifs.
+
+## [1.14.1] - 2026-03-31
+> Commit : `fix(ux): clarify VAT labels and unify degressive tier heading`
+### Modifié
+- Label "client" remplacé par "HT" dans tous les contextes non-assujetti TVA (prix recommandé, tarification personnalisée, modale de sauvegarde) — plus précis et standard.
+- Titre de section "Paliers dégressifs" renommé en "Tarifs dégressifs" dans le calculateur pour s'aligner avec les graphiques.
+
+## [1.14.0] - 2026-03-31
+> Commit : `feat(ux): add confirmation modal before deleting projects and materials`
+### Ajouté
+- Modale de confirmation avant suppression d'un projet ou d'un matériau — affiche le nom de l'élément et requiert une action explicite.
+
+## [1.13.4] - 2026-03-31
+> Commit : `perf(charts): memoize colors, mergedData, tierZones and material lookup`
+### Modifié
+- `ChartsSection` : `COLORS`/`PRODUCTION_COLORS`/`PRICE_COLORS_BASE`, `mergedData` (150 entrées) et `tierZones` sont désormais dans des `useMemo` avec les bonnes dépendances — évite de les recalculer à chaque frappe clavier.
+- `CalculatorPage` : `material` est memoïzé sur `[materials, job.materialId]`.
+
+## [1.13.3] - 2026-03-31
+> Commit : `refactor(utils): extract formatting helpers to utils/formatting.ts`
+### Modifié
+- Création de `src/utils/formatting.ts` avec `fmt`, `euro`, `pct`, `closestTierQty`.
+- `CalculatorPage.tsx` et `ChartsSection.tsx` importent désormais ces fonctions depuis le module partagé — plus de duplication.
+
+## [1.13.2] - 2026-03-31
+> Commit : `fix(storage): add try/catch to all localStorage save functions`
+### Corrigé
+- Les 4 fonctions `save*` de `models.ts` sont désormais protégées par un `try/catch` silencieux, évitant un crash en mode privé ou en cas de quota dépassé.
+
 ## [1.13.1] - 2026-03-31
 > Commit : `fix(shortcuts): use e.code for digit keys to support AZERTY layout`
 ### Corrigé

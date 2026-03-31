@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { euro, pct, closestTierQty } from "../utils/formatting";
 import { type PriceResult, type ChartColors, DEFAULT_CHART_COLORS } from "../models";
 import {
   PieChart,
@@ -28,13 +29,6 @@ interface Props {
 }
 
 
-function euro(n: number): string {
-  return `${n.toFixed(2)} €`;
-}
-
-function pct(n: number): string {
-  return `${(n * 100).toFixed(1)} %`;
-}
 
 function CostPie({
   data,
@@ -161,9 +155,14 @@ function EditablePrice({
 }
 
 export default function ChartsSection({ result, customBasePrice, quantity, vatRate, chartColors: userColors, onCustomPriceChange, onQuantityChange }: Props) {
-  const COLORS = { ...DEFAULT_CHART_COLORS, ...userColors };
-  const PRODUCTION_COLORS = [COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn];
-  const PRICE_COLORS_BASE  = [COLORS.material, COLORS.electricity, COLORS.labor, COLORS.failure, COLORS.vatIn, COLORS.margin, COLORS.vatOut];
+  const { COLORS, PRODUCTION_COLORS, PRICE_COLORS_BASE } = useMemo(() => {
+    const C = { ...DEFAULT_CHART_COLORS, ...userColors };
+    return {
+      COLORS: C,
+      PRODUCTION_COLORS: [C.material, C.electricity, C.labor, C.failure, C.vatIn],
+      PRICE_COLORS_BASE:  [C.material, C.electricity, C.labor, C.failure, C.vatIn, C.margin, C.vatOut],
+    };
+  }, [userColors]);
   // --- Find applicable discount for current quantity ---
   let currentDiscount = 0;
   for (const tier of result.tiers) {
@@ -253,24 +252,25 @@ export default function ChartsSection({ result, customBasePrice, quantity, vatRa
       : PRICE_COLORS_BASE.slice(0, customData.length);
 
   // --- Merged data (1–150): continuous lines + bars at tier points ---
-  function getDiscountAtQty(qty: number): number {
-    let discount = 0;
-    for (const tier of result.tiers) {
-      if (qty >= tier.quantity) discount = tier.discount;
+  const mergedData = useMemo(() => {
+    function getDiscountAtQty(qty: number): number {
+      let discount = 0;
+      for (const tier of result.tiers) {
+        if (qty >= tier.quantity) discount = tier.discount;
+      }
+      return discount;
     }
-    return discount;
-  }
-
-  const mergedData = Array.from({ length: 150 }, (_, i) => {
-    const qty = i + 1;
-    const discount = getDiscountAtQty(qty);
-    const unitPrice = customBasePrice * (1 - discount);
-    const totalPrice = unitPrice * qty;
-    return { qty, unitPrice, totalPrice };
-  });
+    return Array.from({ length: 150 }, (_, i) => {
+      const qty = i + 1;
+      const discount = getDiscountAtQty(qty);
+      const unitPrice = customBasePrice * (1 - discount);
+      const totalPrice = unitPrice * qty;
+      return { qty, unitPrice, totalPrice };
+    });
+  }, [customBasePrice, result.tiers]);
 
   // --- Tier zones (ranges for each tier) ---
-  const tierZones = result.tiers.map((tier, i) => {
+  const tierZones = useMemo(() => result.tiers.map((tier, i) => {
     const nextTier = result.tiers[i + 1];
     return {
       x1: tier.quantity,
@@ -278,7 +278,7 @@ export default function ChartsSection({ result, customBasePrice, quantity, vatRa
       discount: tier.discount,
       unitPrice: tier.unitPrice,
     };
-  });
+  }), [result.tiers]);
 
   const selectedPoint = mergedData[Math.min(Math.max(quantity - 1, 0), 149)];
 

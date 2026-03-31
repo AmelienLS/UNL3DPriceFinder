@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Parameters, type PrintJob, type PriceResult, type Material, calculate } from "../models";
+import { fmt, euro, pct, closestTierQty } from "../utils/formatting";
 import NumberInput from "./NumberInput";
 import ChartsSection from "./ChartsSection";
 
@@ -15,23 +16,14 @@ interface Props {
   saveTrigger: number;
 }
 
-function fmt(n: number, decimals = 2): string {
-  return n.toFixed(decimals);
-}
-
-function euro(n: number): string {
-  return `${fmt(n)} €`;
-}
-
-function pct(n: number): string {
-  return `${fmt(n * 100, 1)} %`;
-}
-
 export default function CalculatorPage({ materials, parameters, printJob: job, updateJob, onSaveProject, onMarginChange, saveTrigger }: Props) {
   const [tab, setTab] = useState<Tab>("calc");
   const [showSave, setShowSave] = useState(false);
   const [saveFields, setSaveFields] = useState({ objectNumber: "", client: "" });
-  const material = materials.find((m) => m.id === job.materialId) ?? materials[0];
+  const material = useMemo(
+    () => materials.find((m) => m.id === job.materialId) ?? materials[0],
+    [materials, job.materialId]
+  );
 
   // ⌘S — open save modal (triggered from App)
   useEffect(() => {
@@ -212,7 +204,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 </div>
               )}
               <div className="card-row">
-                <span className="card-row-label">Prix unitaire {result.vatRegistered ? "TTC" : "client"}</span>
+                <span className="card-row-label">Prix unitaire {result.vatRegistered ? "TTC" : "HT"}</span>
                 <span className="card-row-value accent">{euro(result.recommendedUnitPriceTTC)}</span>
               </div>
               <div className="divider" />
@@ -233,7 +225,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
             <div className="card">
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix {result.vatRegistered ? "TTC" : "client"} unitaire
+                  Prix {result.vatRegistered ? "TTC" : "HT"} unitaire
                 </span>
                 <div className="input-group">
                   <NumberInput
@@ -271,13 +263,13 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
               </div>
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix unitaire {result.vatRegistered ? "TTC" : "client"} après remise
+                  Prix unitaire {result.vatRegistered ? "TTC" : "HT"} après remise
                 </span>
                 <span className="card-row-value strong">{euro(result.customUnitPriceTTC)}</span>
               </div>
               <div className="card-row">
                 <span className="card-row-label">
-                  Prix total {result.vatRegistered ? "TTC" : "client"} (×{job.quantity})
+                  Prix total {result.vatRegistered ? "TTC" : "HT"} (×{job.quantity})
                 </span>
                 <span className="card-row-value accent">{euro(result.customTotalPriceTTC)}</span>
               </div>
@@ -356,7 +348,7 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
             </div>
 
             {/* --- Degressive Tiers --- */}
-            <div className="card-header">Paliers dégressifs</div>
+            <div className="card-header">Tarifs dégressifs</div>
             <div className="card">
               <table className="data-table">
                 <thead>
@@ -431,13 +423,15 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
                 />
               </div>
               <div className="modal-field">
-                <label>Prix unitaire {result.vatRegistered ? "TTC" : "client"} (€)</label>
+                <label>Prix unitaire {result.vatRegistered ? "TTC" : "HT"} (€)</label>
                 <input
                   type="text"
                   value={euro(result.customUnitPriceTTC)}
                   disabled
-                  style={{ opacity: 0.6 }}
                 />
+                <p style={{ fontSize: 11, color: "var(--text-tertiary)", margin: "4px 0 0" }}>
+                  Pour modifier ce prix, fermez cette fenêtre et ajustez la tarification personnalisée.
+                </p>
               </div>
               <div className="modal-field">
                 <label>Client</label>
@@ -474,10 +468,3 @@ export default function CalculatorPage({ materials, parameters, printJob: job, u
   );
 }
 
-function closestTierQty(quantity: number, tiers: number[]): number {
-  let best = tiers[0];
-  for (const t of tiers) {
-    if (quantity >= t) best = t;
-  }
-  return best;
-}

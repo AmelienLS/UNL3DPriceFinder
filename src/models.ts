@@ -450,7 +450,7 @@ export function loadMaterials(): Material[] {
 }
 
 export function saveMaterials(materials: Material[]) {
-  localStorage.setItem(STORAGE_KEYS.materials, JSON.stringify(materials));
+  try { localStorage.setItem(STORAGE_KEYS.materials, JSON.stringify(materials)); } catch { /* quota / private mode */ }
 }
 
 export function loadParameters(): Parameters {
@@ -463,7 +463,7 @@ export function loadParameters(): Parameters {
 }
 
 export function saveParameters(params: Parameters) {
-  localStorage.setItem(STORAGE_KEYS.parameters, JSON.stringify(params));
+  try { localStorage.setItem(STORAGE_KEYS.parameters, JSON.stringify(params)); } catch { /* quota / private mode */ }
 }
 
 export function loadPrintJob(): PrintJob {
@@ -476,7 +476,7 @@ export function loadPrintJob(): PrintJob {
 }
 
 export function savePrintJob(job: PrintJob) {
-  localStorage.setItem(STORAGE_KEYS.printJob, JSON.stringify(job));
+  try { localStorage.setItem(STORAGE_KEYS.printJob, JSON.stringify(job)); } catch { /* quota / private mode */ }
 }
 
 export function loadProjects(): SavedProject[] {
@@ -489,7 +489,7 @@ export function loadProjects(): SavedProject[] {
 }
 
 export function saveProjects(projects: SavedProject[]) {
-  localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
+  try { localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects)); } catch { /* quota / private mode */ }
 }
 
 // --- Import / Export ---
