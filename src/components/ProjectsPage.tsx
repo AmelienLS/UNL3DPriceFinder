@@ -11,6 +11,13 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   delivered: "#5856d6",
 };
 
+type SortKey = "projectName" | "objectNumber" | "unitPrice" | "client" | "materialName" | "date" | "status";
+type SortDir = "asc" | "desc";
+
+const STATUS_ORDER: Record<ProjectStatus, number> = {
+  draft: 0, sent: 1, accepted: 2, delivered: 3, refused: 4,
+};
+
 interface Props {
   projects: SavedProject[];
   setProjects: React.Dispatch<React.SetStateAction<SavedProject[]>>;
@@ -32,6 +39,22 @@ function formatDate(iso: string): string {
 export default function ProjectsPage({ projects, setProjects, onRestore }: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  function sortIndicator(key: SortKey) {
+    if (sortKey !== key) return <span style={{ opacity: 0.25, marginLeft: 4 }}>⇅</span>;
+    return <span style={{ marginLeft: 4 }}>{sortDir === "asc" ? "▲" : "▼"}</span>;
+  }
 
   const query = search.toLowerCase().trim();
   const filtered = projects.filter((p) => {
@@ -43,6 +66,20 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
       p.materialName.toLowerCase().includes(query);
     const matchesStatus = statusFilter === "all" || (p.status ?? "draft") === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    let cmp = 0;
+    switch (sortKey) {
+      case "projectName":   cmp = a.projectName.localeCompare(b.projectName, "fr"); break;
+      case "objectNumber":  cmp = a.objectNumber.localeCompare(b.objectNumber, "fr"); break;
+      case "unitPrice":     cmp = a.unitPrice - b.unitPrice; break;
+      case "client":        cmp = a.client.localeCompare(b.client, "fr"); break;
+      case "materialName":  cmp = a.materialName.localeCompare(b.materialName, "fr"); break;
+      case "date":          cmp = a.date.localeCompare(b.date); break;
+      case "status":        cmp = STATUS_ORDER[a.status ?? "draft"] - STATUS_ORDER[b.status ?? "draft"]; break;
+    }
+    return sortDir === "asc" ? cmp : -cmp;
   });
 
   function handleDelete(id: string) {
@@ -71,7 +108,7 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
 
   function handleExportCSV() {
     const header = "Nom;N° Objet;Prix unitaire;Client;Date;Matériau;Statut";
-    const rows = filtered.map(
+    const rows = sorted.map(
       (p) =>
         `${p.projectName};${p.objectNumber};${p.unitPrice.toFixed(2)};${p.client};${formatDate(p.date)};${p.materialName};${PROJECT_STATUS_LABELS[p.status ?? "draft"]}`
     );
@@ -109,7 +146,7 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
           </select>
         </div>
         <div className="toolbar-group">
-          <button className="btn btn-secondary btn-sm" onClick={handleExportCSV} disabled={filtered.length === 0}>
+          <button className="btn btn-secondary btn-sm" onClick={handleExportCSV} disabled={sorted.length === 0}>
             Exporter CSV
           </button>
         </div>
@@ -120,18 +157,18 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
           <table className="data-table">
             <thead>
               <tr>
-                <th>Nom du projet</th>
-                <th>N° Objet</th>
-                <th>Prix unitaire</th>
-                <th>Client</th>
-                <th>Matériau</th>
-                <th>Date</th>
-                <th>Statut</th>
+                <th className="sortable" onClick={() => handleSort("projectName")}>Nom du projet{sortIndicator("projectName")}</th>
+                <th className="sortable" onClick={() => handleSort("objectNumber")}>N° Objet{sortIndicator("objectNumber")}</th>
+                <th className="sortable" onClick={() => handleSort("unitPrice")}>Prix unitaire{sortIndicator("unitPrice")}</th>
+                <th className="sortable" onClick={() => handleSort("client")}>Client{sortIndicator("client")}</th>
+                <th className="sortable" onClick={() => handleSort("materialName")}>Matériau{sortIndicator("materialName")}</th>
+                <th className="sortable" onClick={() => handleSort("date")}>Date{sortIndicator("date")}</th>
+                <th className="sortable" onClick={() => handleSort("status")}>Statut{sortIndicator("status")}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => {
+              {sorted.map((p) => {
                 const status: ProjectStatus = p.status ?? "draft";
                 return (
                   <tr key={p.id}>
@@ -178,7 +215,7 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
                   </tr>
                 );
               })}
-              {filtered.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
                   <td colSpan={8} style={{ textAlign: "center", color: "var(--text-tertiary)", padding: 24 }}>
                     {projects.length === 0 ? "Aucun projet sauvegardé" : "Aucun résultat"}

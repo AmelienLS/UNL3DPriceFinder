@@ -1,4 +1,13 @@
 # Journal des modifications
+## [1.12.0] - 2026-03-31
+> Commit : `feat(projects): add sortable columns`
+### Ajouté
+- Toutes les colonnes du tableau Projets sont triables (clic sur l'en-tête, clic à nouveau pour inverser).
+- Indicateur visuel ▲/▼ sur la colonne active, ⇅ discret sur les autres.
+- Tri par défaut : Date décroissante (projets les plus récents en premier).
+- Le tri Statut suit l'ordre logique : Brouillon → Devis envoyé → Accepté → Livré → Refusé.
+- L'export CSV respecte l'ordre de tri courant.
+
 ## [1.11.0] - 2026-03-31
 > Commit : `feat(projects): add project duplication`
 ### Ajouté
