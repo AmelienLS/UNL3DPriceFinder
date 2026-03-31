@@ -1,4 +1,9 @@
 # Journal des modifications
+## [1.13.2] - 2026-03-31
+> Commit : `fix(storage): add try/catch to all localStorage save functions`
+### Corrigé
+- Les 4 fonctions `save*` de `models.ts` sont désormais protégées par un `try/catch` silencieux, évitant un crash en mode privé ou en cas de quota dépassé.
+
 ## [1.13.1] - 2026-03-31
 > Commit : `fix(shortcuts): use e.code for digit keys to support AZERTY layout`
 ### Corrigé
