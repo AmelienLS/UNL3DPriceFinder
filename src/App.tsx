@@ -22,11 +22,11 @@ import ProjectsPage from "./components/ProjectsPage";
 
 type Page = "calculator" | "materials" | "parameters" | "projects";
 
-const NAV_ITEMS: { id: Page; label: string; icon: string }[] = [
-  { id: "calculator", label: "Calculateur", icon: "⌘" },
-  { id: "projects", label: "Projets", icon: "▤" },
-  { id: "materials", label: "Matériaux", icon: "◆" },
-  { id: "parameters", label: "Paramètres", icon: "⚙" },
+const NAV_ITEMS: { id: Page; label: string; icon: string; shortcut: string }[] = [
+  { id: "calculator", label: "Calculateur", icon: "∑", shortcut: "⌘1" },
+  { id: "projects",   label: "Projets",     icon: "≡", shortcut: "⌘2" },
+  { id: "materials",  label: "Matériaux",   icon: "⬡", shortcut: "⌘3" },
+  { id: "parameters", label: "Paramètres",  icon: "⚙", shortcut: "⌘4" },
 ];
 
 const PAGE_CODES: Record<string, Page> = { "Digit1": "calculator", "Digit2": "projects", "Digit3": "materials", "Digit4": "parameters" };
@@ -110,6 +110,7 @@ export default function App() {
               >
                 <span className="sidebar-icon">{item.icon}</span>
                 {item.label}
+                <span className="sidebar-shortcut">{item.shortcut}</span>
               </button>
             ))}
           </nav>

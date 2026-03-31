@@ -1,4 +1,10 @@
 # Journal des modifications
+## [1.14.2] - 2026-03-31
+> Commit : `fix(ux): show keyboard shortcut hints in sidebar and update nav icons`
+### Modifié
+- Icônes de navigation remplacées par des symboles sémantiques (∑ calculateur, ≡ projets, ⬡ matériaux, ⚙ paramètres).
+- Raccourcis ⌘1–4 affichés discrètement à droite de chaque item de la sidebar — visibles mais non intrusifs.
+
 ## [1.14.1] - 2026-03-31
 > Commit : `fix(ux): clarify VAT labels and unify degressive tier heading`
 ### Modifié
