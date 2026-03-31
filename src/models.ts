@@ -72,6 +72,16 @@ export interface PriceTier {
 
 export type Profitability = "OUI" | "FAIBLE" | "NON";
 
+export type ProjectStatus = "draft" | "sent" | "accepted" | "refused" | "delivered";
+
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  draft:     "Brouillon",
+  sent:      "Devis envoyé",
+  accepted:  "Accepté",
+  refused:   "Refusé",
+  delivered: "Livré",
+};
+
 export interface SavedProject {
   id: string;
   projectName: string;
@@ -82,6 +92,7 @@ export interface SavedProject {
   snapshot: PrintJob;     // full job snapshot for restore
   materialId: string;
   materialName: string;
+  status: ProjectStatus;
 }
 
 export interface ConsumptionBreakdown {

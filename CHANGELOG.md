@@ -1,4 +1,14 @@
 # Journal des modifications
+## [1.10.0] - 2026-03-31
+> Commit : `feat(projects): add project status with filter`
+### Ajouté
+- Type `ProjectStatus` avec 5 valeurs : Brouillon, Devis envoyé, Accepté, Refusé, Livré.
+- Colonne "Statut" dans le tableau des projets, modifiable directement via un `<select>` inline coloré.
+- Filtre par statut dans la toolbar de la page Projets.
+- Nouveaux projets sauvegardés avec le statut "Brouillon" par défaut.
+- Projets existants sans statut traités comme "Brouillon" (migration transparente).
+- Export CSV inclut désormais la colonne Statut.
+
 ## [1.9.5] - 2026-03-31
 > Commit : `feat(calculator): add editable profit margin field`
 ### Ajouté

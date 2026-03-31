@@ -61,6 +61,7 @@ export default function App() {
         snapshot: { ...printJob },
         materialId: printJob.materialId,
         materialName: material?.name ?? "—",
+        status: "draft",
       };
       setProjects((prev) => [project, ...prev]);
     },
