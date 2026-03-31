@@ -25,6 +25,7 @@ export default function MaterialsPage({ materials, setMaterials }: Props) {
   const [isNew, setIsNew] = useState(false);
   const [autoFlags, setAutoFlags] = useState({ density: false, thermal: false });
   const [brands, setBrands] = useState<string[]>(loadBrands);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // When the material name changes in "new" mode, auto-fill density + thermal
   useEffect(() => {
@@ -126,7 +127,7 @@ export default function MaterialsPage({ materials, setMaterials }: Props) {
                   <button className="btn btn-secondary btn-sm" onClick={() => openEdit(m)}>
                     Modifier
                   </button>{" "}
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(m.id)}>
+                  <button className="btn btn-danger btn-sm" onClick={() => setConfirmDeleteId(m.id)}>
                     ×
                   </button>
                 </td>
@@ -143,6 +144,25 @@ export default function MaterialsPage({ materials, setMaterials }: Props) {
         </table>
         </div>
       </div>
+
+      {/* Confirm Delete Modal */}
+      {confirmDeleteId && (() => {
+        const m = materials.find((mat) => mat.id === confirmDeleteId);
+        return (
+          <div className="modal-overlay" onClick={() => setConfirmDeleteId(null)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">Confirmer la suppression</div>
+              <div className="modal-body">
+                Supprimer « {m?.name} » ? Cette action est irréversible.
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setConfirmDeleteId(null)}>Annuler</button>
+                <button className="btn btn-danger" onClick={() => { handleDelete(confirmDeleteId); setConfirmDeleteId(null); }}>Supprimer</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Edit / Add Modal */}
       {editing && (

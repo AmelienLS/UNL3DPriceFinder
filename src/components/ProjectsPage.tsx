@@ -41,6 +41,7 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -206,7 +207,7 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
                       </button>{" "}
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => setConfirmDeleteId(p.id)}
                         title="Supprimer"
                       >
                         ×
@@ -226,6 +227,24 @@ export default function ProjectsPage({ projects, setProjects, onRestore }: Props
           </table>
         </div>
       </div>
+      {/* Confirm Delete Modal */}
+      {confirmDeleteId && (() => {
+        const p = projects.find((pr) => pr.id === confirmDeleteId);
+        return (
+          <div className="modal-overlay" onClick={() => setConfirmDeleteId(null)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">Confirmer la suppression</div>
+              <div className="modal-body">
+                Supprimer « {p?.projectName || p?.objectNumber || "ce projet"} » ? Cette action est irréversible.
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setConfirmDeleteId(null)}>Annuler</button>
+                <button className="btn btn-danger" onClick={() => { handleDelete(confirmDeleteId); setConfirmDeleteId(null); }}>Supprimer</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

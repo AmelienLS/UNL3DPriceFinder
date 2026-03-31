@@ -1,4 +1,9 @@
 # Journal des modifications
+## [1.14.0] - 2026-03-31
+> Commit : `feat(ux): add confirmation modal before deleting projects and materials`
+### Ajouté
+- Modale de confirmation avant suppression d'un projet ou d'un matériau — affiche le nom de l'élément et requiert une action explicite.
+
 ## [1.13.4] - 2026-03-31
 > Commit : `perf(charts): memoize colors, mergedData, tierZones and material lookup`
 ### Modifié
