@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { euro, pct, closestTierQty } from "../utils/formatting";
+import { euro, pct } from "../utils/formatting";
 import { type PriceResult, type ChartColors, DEFAULT_CHART_COLORS } from "../models";
 import {
   PieChart,
