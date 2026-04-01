@@ -74,12 +74,26 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Recreate signed DMG
+      - name: Inject signed app into Tauri DMG
         run: |
           APP="src-tauri/target/release/bundle/macos/UNL3DPricer.app"
-          DMG="src-tauri/target/release/bundle/dmg/UNL3DPricer_${{ steps.version.outputs.version }}_aarch64.dmg"
-          rm -f src-tauri/target/release/bundle/dmg/*.dmg
-          hdiutil create -volname "UNL3DPricer" -srcfolder "$APP" -ov -format UDZO "$DMG"
+          TAURI_DMG="src-tauri/target/release/bundle/dmg/UNL3DPricer_${{ steps.version.outputs.version }}_aarch64.dmg"
+          RW_DMG="src-tauri/target/release/bundle/dmg/UNL3DPricer_rw.dmg"
+          MOUNT_POINT="/Volumes/UNL3DPricer"
+
+          # Convertir le DMG Tauri (read-only) en inscriptible
+          hdiutil convert "$TAURI_DMG" -format UDRW -o "$RW_DMG"
+
+          # Monter, remplacer le .app par la version signée, démonter
+          hdiutil attach "$RW_DMG" -mountpoint "$MOUNT_POINT" -nobrowse -quiet
+          rm -rf "$MOUNT_POINT/UNL3DPricer.app"
+          cp -R "$APP" "$MOUNT_POINT/"
+          hdiutil detach "$MOUNT_POINT" -quiet
+
+          # Recompresser par-dessus le DMG original
+          rm -f "$TAURI_DMG"
+          hdiutil convert "$RW_DMG" -format UDZO -imagekey zlib-level=9 -o "$TAURI_DMG"
+          rm -f "$RW_DMG"
 
       - name: Upload DMG as artifact
         uses: actions/upload-artifact@v4
