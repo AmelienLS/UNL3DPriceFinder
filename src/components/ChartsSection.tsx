@@ -4,7 +4,6 @@ import { type PriceResult, type ChartColors, DEFAULT_CHART_COLORS } from "../mod
 import {
   PieChart,
   Pie,
-  Cell,
   Tooltip,
   Legend,
   ResponsiveContainer,
@@ -49,12 +48,17 @@ function CostPie({
   gridColor: string;
   centerContent?: React.ReactNode;
 }) {
+  const coloredData = data.map((entry, i) => ({
+    ...entry,
+    fill: colors[i % colors.length],
+  }));
+
   return (
     <div className="chart-container">
       <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie
-            data={data}
+            data={coloredData}
             cx="50%"
             cy="50%"
             innerRadius={55}
@@ -62,11 +66,7 @@ function CostPie({
             paddingAngle={2}
             dataKey="value"
             stroke="none"
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={colors[i % colors.length]} />
-            ))}
-          </Pie>
+          />
           <Tooltip
             formatter={(value, name) => [
               `${euro(Number(value))} (${pct(Number(value) / total)})`,
